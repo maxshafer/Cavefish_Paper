@@ -1,109 +1,125 @@
 library(Seurat)
 library(Matrix)
 library(dplyr)
-library(data.table)
-library(purrr)
-library(data.table)
+library(tidyr)
 library(reshape2)
 
+setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
-setwd("/Volumes/BZ/Home/gizevo30/R_Projects/AstMex_Hypo")
+hypo <- readRDS("AstMex_63k.rds")
 
+# Subset to cave and surface versions, and find conserved, and species-morph specific marker genes
 
-# Load marker genes
-dir.markers <- paste("/Volumes/Maxwell/R_Projects/AstMex_Hypo/CSV/full_dataset/cluster_markers/", list.files("/Volumes/Maxwell/R_Projects/AstMex_Hypo/CSV/full_dataset/cluster_markers/"), sep = "")
+DefaultAssay(hypo) <- "RNA"
 
+Idents(hypo) <- "species"
+hypo.surface <- subset(hypo, idents = "astyanax_surface")
+hypo.cave <- subset(hypo, idents = "astyanax_cave")
 
-markers.Subtype <- ldply(dir.markers, read.csv)
+# ############## Subtype Markers ##############
+# 
+# # Find Conserved Markers
+# 
+# Idents(hypo) <- "Subtype"
+# Idents(hypo.surface) <- "Subtype"
+# Idents(hypo.cave) <- "Subtype"
+# 
+# conserved.markers <- lapply(levels(Idents(hypo)), function(x) FindConservedMarkers(hypo, ident.1 = x, grouping.var = "species", verbose = T, max.cells.per.ident = 1000))
+# names(conserved.markers) <- levels(Idents(hypo))
+# 
+# gene.lists <- list()
+# 
+# gene.lists[[1]] <- conserved.markers
+# 
+# # Find Markers for species morphs
+# 
+# surface.markers <- lapply(levels(Idents(hypo.surface)), function(x) FindMarkers(hypo.surface, ident.1 = x, verbose = T, max.cells.per.ident = 1000))
+# names(surface.markers) <- levels(Idents(hypo.surface))
+# 
+# gene.lists[[2]] <- surface.markers
+# 
+# cave.markers <- lapply(levels(Idents(hypo.cave)), function(x) FindMarkers(hypo.cave, ident.1 = x, verbose = T, max.cells.per.ident = 1000))
+# names(cave.markers) <- levels(Idents(hypo.cave))
+# 
+# gene.lists[[3]] <- cave.markers
+# 
+# names(gene.lists) <- c("conserved.markers", "surface.markers", "cave.markers")
+# 
+# saveRDS(gene.lists, file = "marker_gene_lists.rds")
 
-# Replace cluster numbers with names?
-mappingvalues <- read.csv("CSV/full_dataset/Cluster_annotations_AstMex_Hypo.res.0.6.csv", header = TRUE, row.names = "cluster")
+############## SubclusterType Markers ##############
 
-hypo <- SetAllIdent(hypo, id = "res.0.6")
+## Find Conserved Sub Markers
+## First identify those subclusters that are specific (> 90%), I don't care about DE genes for these cells types
 
-current.cluster.ids <- as.numeric(levels(hypo@ident))
+## NEED TO REMAKE INDEX FILE FOR ZEB AST COMPARISON
 
-new.cluster.ids <- as.vector(mappingvalues$Subtype)[!grepl("CONT", mappingvalues$Subtype)]
-
-markers.Subtype$cluster <- mapvalues(x = markers.Subtype$cluster, from = current.cluster.ids, to = new.cluster.ids)
-
-markers.Subtype <- markers.Subtype[order(match(markers.Subtype$cluster, levels(hypo@ident))),]
-
-# Save Subtype markers
-
-saveRDS(markers.Subtype, file = "AstMex_Hypo_markers.Subtype.rds")
-
-markers.Subtype <- readRDS(file = "AstMex_Hypo_markers.Subtype.rds")
-
-markers.Subtype$cluster <- markers.Subtype %>% pull(cluster) %>% plyr::mapvalues(., c("Leucocytes_1", "Leucocytes_2", "Leucocytes_3", "Leucocytes_4"), c("Bcells", "Mast_cells", "Thrombocytes", "Neutrophils"))
-
-markers.Subtype <- markers.Subtype[!grepl("32", markers.Subtype$cluster),]
-
-## Change marker names for immune cell types
-
-markers.Subtype$cluster <- factor(markers.Subtype$cluster, levels = levels(hypo@meta.data$Subtype))
-
-# Make figures
-
-hypo <- SetAllIdent(hypo, id = "Subtype")
-
-top2 <- markers.Subtype %>% group_by(cluster) %>% top_n(2, avg_logFC)
-top10 <- markers.Subtype %>% group_by(cluster) %>% top_n(10, avg_logFC)
-
-top2 <- top2[order(top2$cluster),]
-top10 <- top10[order(top10$cluster),]
-
-## Load Seurat 3.0 to make proper DotPlots
-detach("package:Seurat", unload = T)
-library(Seurat, lib.loc="/Users/maxwellshafer/Library/R/3.5/Dev")
-hypo <- UpdateSeuratObject(hypo.ast)
-
-astyanax.marker.dot <- DotPlot(hypo, features = unique(top2$gene), group.by = "Subtype", dot.scale = 3, do.return = T) + coord_flip() + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 6), axis.title = element_blank()) + scale_color_viridis()
-
-library(patchwork)
-rerio.marker.dot + astyanax.marker.dot + plot_layout(guides = "collect")
-
-detach("package:Seurat", unload = T)
-library(Seurat)
+Idents(hypo) <- "SubclusterType"
+Idents(hypo.surface) <- "SubclusterType"
+Idents(hypo.cave) <- "SubclusterType"
 
 
-png("Figures/hypo_cluster_dotplot_Subtype_markers.png", height = 15, width = 8, units = "in", res = 250)
-p1 <- DotPlot(object = hypo, genes.plot = unique(top2$gene), plot.legend = TRUE, do.return = T, dot.scale = 3) + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 6)) + scale_color_viridis() + coord_flip()
-dev.off()
+# Find morph specific clusters
+prop.table <- table(hypo@meta.data$SubclusterType, hypo@meta.data$species)
+prop.table <- as.data.frame(t(apply(prop.table, 1, function(y) {y/sum(y)})))
+prop.table$surface_specific <- ifelse(prop.table$astyanax_surface > .9, "yes", "no")
+prop.table$cave_specific <- ifelse(prop.table$astyanax_cave > .9, "yes", "no")
 
-# Plot p2 with p1 from the AstMex file using patchwork
-# p2 + p1 + plot_layout(guides = "collect", widths = c(length(unique(hypo.zeb@meta.data$Subtype)), length(unique(hypo.ast@meta.data$Subtype))))
+surface.names <- row.names(prop.table[prop.table$surface_specific == "yes",])
+cave.names <- row.names(prop.table[prop.table$cave_specific == "yes",])
 
-widths = c(length(unique(hypo.zeb@meta.data$Subtype)), length(unique(hypo.ast@meta.data$Subtype)))
+# Make index
+subclusters <- levels(Idents(hypo))
+index <- subclusters[!(subclusters %in% c(surface.names, cave.names))]
 
-# Legend on side again
-png("Figures/hypo_cluster_dotplot_Subtype_markers_10.png", height = 40, width = 12, units = "in", res = 250)
-DotPlot(object = hypo, genes.plot = unique(top10$gene), plot.legend = TRUE, x.lab.rot = TRUE, do.return = T) + scale_color_viridis()
-dev.off()
+## Find conserved markers for shared cell types, and markers for specific cell types
+
+print("starting conserved markers")
+
+conserved.markers.sub <- lapply(index, function(x) FindConservedMarkers(hypo, ident.1 = x, grouping.var = "species", verbose = T, max.cells.per.ident = 500))
+names(conserved.markers.sub) <- index
+
+conserved.markers.sub.specific <- lapply(c(surface.names, cave.names), function(x) FindMarkers(hypo, ident.1 = x, verbose = F, max.cells.per.ident = 500))
+names(conserved.markers.sub.specific) <- c(surface.names, cave.names)
+
+conserved.markers.sub <- c(conserved.markers.sub, conserved.markers.sub.specific)
+conserved.markers.sub <- conserved.markers.sub[levels(Idents(hypo))]
+
+gene.lists[[4]] <- conserved.markers.sub
+
+saveRDS(gene.lists, file = "marker_gene_lists.rds")
+print("done conserved markers")
+
+# Find markers for surface and cave versions of each subcluster
+
+surface.markers.sub <- lapply(levels(Idents(hypo))[index], function(x) FindMarkers(hypo.surface, ident.1 = x, verbose = F, max.cells.per.ident = 500))
+names(surface.markers.sub) <- levels(Idents(hypo))[index]
+
+surface.markers.sub.specific <- lapply(surface.names, function(x) FindMarkers(hypo.surface, ident.1 = x, verbose = F, max.cells.per.ident = 500))
+names(surface.markers.sub.specific) <- surface.names
+
+surface.markers.sub <- c(surface.markers.sub, surface.markers.sub.specific)
+surface.markers.sub <- surface.markers.sub[levels(Idents(hypo))]
+
+gene.lists[[5]] <- surface.markers.sub
+
+saveRDS(gene.lists, file = "marker_gene_lists.rds")
+print("done surface markers")
 
 
-# Subcluster marker genes
-## Find Marker genes (the ones I have are for non-combined subclusters (~250))
-hypo <- SetAllIdent(hypo, id = "Subtype")
+cave.markers.sub <- lapply(levels(Idents(hypo))[index], function(x) FindMarkers(hypo.cave, ident.1 = x, verbose = F, max.cells.per.ident = 500))
+names(cave.markers.sub) <- levels(Idents(hypo))[index]
 
-hypo.small <- SubsetData(hypo, max.cells.per.ident = 1000)
+cave.markers.sub.specific <- lapply(cave.names, function(x) FindMarkers(hypo.cave, ident.1 = x, verbose = F, max.cells.per.ident = 500))
+names(cave.markers.sub.specific) <- cave.names
 
-hypo.small <- SetAllIdent(hypo.small, id = "SubclusterType")
+cave.markers.sub <- c(cave.markers.sub, cave.markers.sub.specific)
+cave.markers.sub <- cave.markers.sub[levels(Idents(hypo))]
 
-markers.SubclusterType <- FindAllMarkers(object = hypo.small, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.5, max.cells.per.ident = 250)
+gene.lists[[6]] <- cave.markers.sub
 
-# Save markers
+saveRDS(gene.lists, file = "marker_gene_lists.rds")
+print("done cave markers")
 
-saveRDS(markers.SubclusterType, file = "Shafer_Hypo_markers.SubclusterType.rds")
 
-# Plot
 
-top2 <- markers.SubclusterType %>% group_by(cluster) %>% top_n(2, avg_logFC)
-
-hypo <- SetAllIdent(hypo, id = "Subtype")
-
-png("Figures/hypo_cluster_dotplot_SubclusterType_markers.png", height = 80, width = 30, units = "in", res = 250)
-DotPlot(object = hypo, genes.plot = unique(top10$gene), group.by = "SubclusterType", plot.legend = TRUE, x.lab.rot = TRUE)
-dev.off()
-
-DotPlot(object = SubsetData(hypo, ident.use = c("Glut_2")), genes.plot = unique(top10$gene[grep("Glut_2", top10$cluster)]), group.by = "SubclusterType", plot.legend = TRUE, x.lab.rot = TRUE)
