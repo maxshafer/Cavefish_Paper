@@ -1,0 +1,8 @@
+library(Seurat)
+load("~/Documents/Schier_Lab - Archived 29.07.2019/R_Projects/Seurat_v3_Integration/Hypo_integrated_130k_1500VFs_100Dims.Robj")
+ls()
+rm(hypo.integrated)
+load("~/Documents/Schier_Lab - Archived 29.07.2019/R_Projects/Shafer_Hypo/Shafer_Hypo_66k.Robj")
+ls()
+hypo.zeb
+rm(hypo.zeb)
