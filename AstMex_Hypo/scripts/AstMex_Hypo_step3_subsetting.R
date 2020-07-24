@@ -45,6 +45,9 @@ meta.data$SubclusterType_number <- meta.data$RNA_snn_res.0.4
 hypo@meta.data$SubclusterType <- meta.data$SubclusterType[match(row.names(hypo@meta.data), row.names(meta.data))]
 hypo@meta.data$SubclusterType_number <- meta.data$SubclusterType_number[match(row.names(hypo@meta.data), row.names(meta.data))]
 
+# Remove GABA_5_1 which is contamination from Habenula
+Idents(hypo) <- "SubclusterType"
+hypo <- subset(hypo, idents = levels(Idents(hypo))[!grepl("GABA_5_1", levels(Idents(hypo)))])
 
 ## Set factor levels for SubclusterTypes based on Subtype factors levels
 

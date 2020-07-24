@@ -6,8 +6,7 @@ library(stringr)
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
 ## Load objects
-load("AstMex_63k.Robj")
-hypo <- hypo.ast
+hypo <- readRDS("AstMex_63k.rds")
 
 # Genes used for calling clusters (from marker gene analysis of previous clustering)
 genes <- c("wu:fj39g12", "pvalb7", "fkbp1ab", "chgb", "her15.1", "zgc:165461", "prdx1", "calb2a", "pitx2", "pfn1", "cd74a", "npc2", "apoeb", "apoc1", "csf3a", "dusp2", "cxcr4b", "cd28l", "sla2", 
@@ -48,8 +47,6 @@ Idents(hypo) <- "Subtype"
 # Remove all 3 CONT, or keep everything else
 
 hypo <- subset(hypo, idents = levels(Idents(hypo))[!grepl("CONT", levels(Idents(hypo)))])
-
-hypo <- SetAllIdent(hypo, id = "SubclusterType")
 
 # Set factor levels for Subtypes
 
