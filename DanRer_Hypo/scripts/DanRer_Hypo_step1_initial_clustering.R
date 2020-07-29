@@ -50,7 +50,7 @@ hypo@meta.data$species <- "zebrafish"
 
 
 # Factor levels for meta data
-hypo@meta.data$orig.ident <- factor(hypo@meta.data$orig.ident, levels = c("hypo5","hypo6","hypo7","hypo8","hypo13","hypo14","hypo15","hypo16","hypo1","hypo2","hypo3","hypo4","hypo9","hypo10","hypo11","hypo12"))
+hypo@meta.data$orig.ident <- factor(hypo@meta.data$orig.ident, levels = c("hypo1","hypo2","hypo3","hypo4","hypo5","hypo6","hypo7","hypo8","hypo9","hypo10","hypo11","hypo12","hypo13","hypo14","hypo15","hypo16"))
 hypo@meta.data$sex <- factor(hypo@meta.data$sex, levels = c("female1", "female2", "male1", "male2"))
 
 

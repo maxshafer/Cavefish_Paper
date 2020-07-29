@@ -36,8 +36,8 @@ gene.lists <- readRDS("marker_gene_lists.rds")
 
 Idents(hypo) <- "SubclusterType"
 
-subcluster.markers <- lapply(Idents(hypo), function(x) FindMarkers(hypo, ident.1 = x, verbose = T, max.cells.per.ident = 500))
-names(subcluster.markers) <- index
+subcluster.markers <- lapply(levels(Idents(hypo)), function(x) FindMarkers(hypo, ident.1 = x, verbose = T, max.cells.per.ident = 500))
+names(subcluster.markers) <- levels(Idents(hypo))
 
 gene.lists[[2]] <- subcluster.markers
 

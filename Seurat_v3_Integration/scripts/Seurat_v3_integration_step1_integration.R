@@ -31,4 +31,12 @@ hypo.integrated <- ScaleData(object = hypo.integrated, verbose = FALSE)
 hypo.integrated <- RunPCA(object = hypo.integrated, npcs = 100, verbose = FALSE)
 hypo.integrated <- RunTSNE(object = hypo.integrated, reduction = "pca", dims = 1:100, check_duplicates = F)
 
-save(hypo.integrated, file = "Hypo_integrated_128k_1500VFs_100Dims_v1.Robj")
+# Generate tsne for non-integrated data ("basetsne")
+
+hypo.integrated <- NormalizeData(hypo.integrated, block.size = 25000)
+hypo.integrated <- FindVariableFeatures(hypo.integrated.2, nfeatures = 2000)
+hypo.integrated <- ScaleData(object = hypo.integrated.2, features = VariableFeatures(hypo.integrated.2), verbose = FALSE)
+hypo.integrated <- RunPCA(object = hypo.integrated.2, assay = "RNA", reduction.key = "base", reduction.name = "base", npcs = 100, verbose = FALSE)
+hypo.integrated <- RunTSNE(object = hypo.integrated.2, reduction = "base", reduction.key = "basetsne_", reduction.name = "basetsne", dims = 1:100, check_duplicates = F)
+
+save(hypo.integrated.2, file = "Hypo_integrated_128k_1500VFs_100Dims_v1.Robj")
