@@ -1,7 +1,4 @@
 library(Seurat)
-library(Matrix)
-library(plyr)
-library(stringr)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
@@ -15,23 +12,16 @@ genes <- c("wu:fj39g12", "pvalb7", "fkbp1ab", "chgb", "her15.1", "zgc:165461", "
            "ENSAMXG00000005497", "gfap", "srgn", "rel", "p2ry11", "epd", "fetub", "mdka", "mrc1a", "stab1", "mb", "abcb4", "hopx", "slc6a3", "th", "pomca", "cldn7b", "oxt", "thnsl2", "cotl1", 
            "pgd", "ENSAMXG00000013843", "ENSAMXG00000006950", "ltb4r", "alox5ap")
 
-DotPlot(hypo, features = genes) + RotatedAxis()
+DotPlot(hypo, features = c("gng3", "slc17a6a", "gad1b",genes), group.by = "RNA_snn_res.0.6") + RotatedAxis()
 DotPlot(hypo, features = c("gng3", "slc17a6a", "gad1b", "galn", "oxt", "cd74b")) + RotatedAxis()
 
 Idents(hypo) <- "RNA_snn_res.0.6"
-current.cluster.ids <- c(0:(length(levels(Idents(hypo)))-1))
 
-# Combining cluster 6 and 24 into GABA_1 (from marker genes)
-new.cluster.ids <- c("Glut_0", "GABA_0", "GABA_Prdx1_1", "Progenitors_1",  
-                     "Microglia", "Tcells", "GABA_1", "Glut_1", "Glut_2",
-                     "Macrophages", "Bcells", "Glut_3", "Oligodendrocytes_1",
-                     "Galanin", "Otpa/b_1", "GABA_2", "GABA_3", "Glut_4", 
-                     "Erythrocytes", "Ciliated/Ventricular", "Otpa/b_2", "GABA_4", 
-                     "GABA_5", "OPCs", "GABA_1", "GABA_6", "Progenitors_2", "Mast_cells",
-                     "Lymphatic", "GABA_7", "Endothelial", "Otpa/b_3", 
-                     "CONT", "Thrombocytes", "Neutrophils", "Oligodendrocytes_2")
-
-Idents(hypo) <- new.cluster.ids[match(Idents(hypo), current.cluster.ids)]
+# No thrombocytes this clustering (they group with neutrophils)
+hypo <- RenameIdents(hypo, '0' = "Glut_0", '1' = "GABA_0", '2' = "GABA_Prdx1_1", '3' = "Progenitors_1", '4' = "Microglia", '5' = "Tcells", '6' = "Glut_1", '7' = "Glut_2", '8' = "Glut_3", '9' = "Macrophages", 
+                            '10' = "Bcells", '11' = "Glut_4", '12' = "Oligodendrocytes_1", '13' = "Galanin", '14' = "Otpa/b_1", '15' = "GABA_1", '16' = "GABA_2", '17' = "GABA_3", '18' = "Erythrocytes",
+                            '19' = "Ciliated/Ventricular", '20' = "Otpa/b_2", '21' = "GABA_4", '22' = "GABA_5", '23' = "OPCs", '24' = "GABA_6", '25' = "GABA_7", '26' = "Progenitors_2", '27' = "Mast_cells", '28' = "Ependymal",
+                            '29' = "Lymphatic", '30' = "GABA_8", '31' = "Endothelial", '32' = "GABA_9", '33' = "Otpa/b_3", '34' = "CONT", '35' = "Neutrophils", '36' = "Oligodendrocytes_2")
 
 hypo$Subtype <- Idents(hypo)
 
@@ -44,7 +34,7 @@ saveRDS(hypo.ast.63.2, file = "AstMex_63.2k.rds")
 
 Idents(hypo) <- "Subtype"
 
-# Remove all 3 CONT, or keep everything else
+# Remove CONT cluster (from only 1 sample), and keep everything else as new smaller object
 
 hypo <- subset(hypo, idents = levels(Idents(hypo))[!grepl("CONT", levels(Idents(hypo)))])
 
@@ -52,9 +42,8 @@ hypo <- subset(hypo, idents = levels(Idents(hypo))[!grepl("CONT", levels(Idents(
 
 hypo@meta.data$Subtype <- factor(hypo@meta.data$Subtype, levels = c("Endothelial", "Erythrocytes", "Ciliated/Ventricular", "Ependymal", "Progenitors_1", "Progenitors_2", 
                                                                     "OPCs", "Oligodendrocytes_1", "Oligodendrocytes_2", "GABA_0", "GABA_1", "GABA_2", "GABA_3", "GABA_4", 
-                                                                    "GABA_5", "GABA_6", "GABA_7", "GABA_Prdx1_1", "Glut_0", "Glut_1", "Glut_2", "Glut_3", "Glut_4", "Galanin", 
-                                                                    "Otpa/b_1", "Otpa/b_2", "Otpa/b_3", "Lymphatic", "Tcells", "Bcells", "Mast_cells", "Thrombocytes", "Neutrophils", 
-                                                                    "Macrophages", "Microglia"))
+                                                                    "GABA_5", "GABA_6", "GABA_7", "GABA_8", "GABA_9", "GABA_Prdx1_1", "Glut_0", "Glut_1", "Glut_2", "Glut_3", "Glut_4", "Galanin", 
+                                                                    "Otpa/b_1", "Otpa/b_2", "Otpa/b_3", "Lymphatic", "Tcells", "Bcells", "Mast_cells", "Neutrophils", "Macrophages", "Microglia"))
 
 # Save as new, reduced file
 hypo.ast.63 <- hypo

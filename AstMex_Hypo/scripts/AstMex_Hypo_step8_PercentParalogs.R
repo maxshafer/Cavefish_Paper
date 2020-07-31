@@ -1,13 +1,6 @@
-library(Seurat)
 library(Matrix)
 library(dplyr)
 library(ggplot2)
-library(cowplot)
-library(tidyr)
-library(RDAVIDWebService)
-library(org.Dr.eg.db)
-library(reshape2)
-library(data.table)
 library(fdrtool)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
@@ -21,8 +14,8 @@ setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 # Read in the file from biomart web tool (R package doesn't work, because file is so huge)
 mart <- read.csv("mart_export_Astyanax_102.txt", sep = "\t", head = TRUE)
 
-DI <- read.rds("Ast_DI.rds")
-DI.sub <- read.rds("Ast_DI.sub.rds")
+DI <- readRDS("Ast_DI.rds")
+DI.sub <- readRDS("Ast_DI.sub.rds")
 
 
 ## Load marker gene lists
@@ -69,8 +62,6 @@ calcParalog <- function(conserved = conserved, species.1 = species.1, species.2 
 	return(vec)
 }
 
-
-
 paralog.numbers <- lapply(seq_along(gene.lists.pos[[1]]), function(x) calcParalog(conserved = gene.lists.pos[[1]], species.1 = gene.lists.pos[[2]], species.2 = gene.lists.pos[[3]], mart.1 = mart, mart.2 = mart, i = x))
 
 
@@ -104,12 +95,8 @@ subtypes.2 <- reshape2::melt(subtypes[,13:18])
 
 # Find morph specific clusters
 prop.table <- table(hypo@meta.data$SubclusterType, hypo@meta.data$species)
-prop.table <- as.data.frame(t(apply(prop.table, 1, function(y) {y/sum(y)})))
-prop.table$surface_specific <- ifelse(prop.table$astyanax_surface > .9, "yes", "no")
-prop.table$cave_specific <- ifelse(prop.table$astyanax_cave > .9, "yes", "no")
-
-surface.names <- row.names(prop.table[prop.table$surface_specific == "yes",])
-cave.names <- row.names(prop.table[prop.table$cave_specific == "yes",])
+surface.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[1] < 3 | x[2]/sum(x) > .9))]
+cave.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[2] < 3 | x[1]/sum(x) > .9))]
 
 # Make index
 subclusters <- levels(hypo@meta.data$SubclusterType)
@@ -166,14 +153,10 @@ para.drift <- para.drift + theme(axis.text = element_text(size = 8), axis.title 
 
 percent.para <- ggplot(subtypes) + geom_segment( aes(x = percent.para.1/fisher.odds.1, xend = percent.para.1, y = Subtypes, yend = Subtypes), colour = "black", position = position_nudge(y=0.2)) + geom_point( aes(x = percent.para.1/fisher.odds.1, y = Subtypes, colour = Subtypes), alpha = 0.5, size = 2, position = position_nudge(y=0.2)) + geom_point( aes(x = percent.para.1, y = Subtypes, colour = Subtypes), size = 2, position = position_nudge(y=0.2)) + geom_segment( aes(x = percent.para.2/fisher.odds.2, xend = percent.para.2, y = Subtypes, yend = Subtypes), colour = "red", position = position_nudge(y=-0.2)) + geom_point( aes(x = percent.para.2/fisher.odds.2, y = Subtypes, colour = Subtypes), alpha = 0.5, size = 2, position = position_nudge(y=-0.2)) + geom_point( aes(x = percent.para.2, y = Subtypes, colour = Subtypes), size = 2, position = position_nudge(y=-0.2)) + guides(colour = F) + theme(axis.text = element_text(size = 8), axis.title = element_text(size = 10), axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + ylab("") + xlab("Expected vs \n Observed % Paralogs") + coord_flip()
 
-
-
-
 # subtypes <- melt(subtypes[,9:12])
 
 ggplot(subtypes, aes(x = percent.para.2 + percent.para.1, y = driftindex, color = Subtypes, label = Subtypes)) + geom_point() + geom_text() + guides(color = FALSE) + geom_smooth(method = lm, se = T, color = "black", fill = "grey85")
 ggplot(subtypes, aes(x = percent.para.1, y = percent.para.2, color = Subtypes, label = Subtypes)) + geom_point() + geom_text() + guides(color = FALSE)
-
 
 
 ggplot(subtypes.2[subtypes.2$variable == "percent.para.1" | subtypes.2$variable == "percent.para.2",], aes(Subtypes,x = variable, y = value, color = Subtypes, group = variable)) + geom_boxplot(width = 0.5, outlier.shape = NA) + geom_jitter(size = 3, position = position_jitter(0.1)) + guides(color = F) + ylab("Percentage Paralog") + xlab("Species") + scale_x_discrete(labels = c("D. rerio", "A. mexicanus")) + theme(axis.text.x = element_text(face = "italic"))
@@ -202,8 +185,6 @@ ggplot(subclusters.2[subclusters.2$variable == "driftindex",], aes(Subclusters,x
 fisher.test(matrix(data = apply(do.call(rbind, paralog.numbers.sub), 2, function(x) sum(x))[5:8], ncol = 2, nrow = 2))
 
 
-
- 
 ## save plots
 
 percent.para <- ggplot(subtypes.2[subtypes.2$variable == "percent.para.1" | subtypes.2$variable == "percent.para.2",], aes(Subtypes,x = variable, y = value, color = Subtypes, group = variable)) + geom_boxplot(width = 0.5, outlier.shape = NA) + geom_jitter(size = 3, position = position_jitter(0.1)) + guides(color = F) + ylab("Percentage Paralog") + xlab("Species") + scale_x_discrete(labels = c("D. rerio", "A. mexicanus")) + theme(axis.text.x = element_text(face = "italic"))

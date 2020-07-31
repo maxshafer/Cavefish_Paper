@@ -1,8 +1,5 @@
 library(Seurat)
 library(Matrix)
-library(dplyr)
-library(tidyr)
-library(reshape2)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
@@ -64,12 +61,8 @@ Idents(hypo.cave) <- "SubclusterType"
 
 # Find morph specific clusters
 prop.table <- table(hypo@meta.data$SubclusterType, hypo@meta.data$species)
-prop.table <- as.data.frame(t(apply(prop.table, 1, function(y) {y/sum(y)})))
-prop.table$surface_specific <- ifelse(prop.table$astyanax_surface > .9, "yes", "no")
-prop.table$cave_specific <- ifelse(prop.table$astyanax_cave > .9, "yes", "no")
-
-surface.names <- row.names(prop.table[prop.table$surface_specific == "yes",])
-cave.names <- row.names(prop.table[prop.table$cave_specific == "yes",])
+surface.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[1] < 3 | x[2]/sum(x) > .9))]
+cave.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[2] < 3 | x[1]/sum(x) > .9))]
 
 # Make index
 subclusters <- levels(Idents(hypo))

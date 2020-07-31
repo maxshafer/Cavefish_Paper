@@ -1,6 +1,4 @@
 library(Seurat)
-library(Matrix)
-library(dplyr)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 

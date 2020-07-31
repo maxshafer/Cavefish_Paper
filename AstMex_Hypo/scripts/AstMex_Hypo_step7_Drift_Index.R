@@ -1,17 +1,9 @@
 library(Seurat)
-library(Matrix)
 library(dplyr)
 library(ggplot2)
-library(cowplot)
 library(tidyr)
-library(RDAVIDWebService)
-library(org.Dr.eg.db)
 library(reshape2)
-library(stringr)
-library(viridis)
 library(ggpubr)
-
-
 
 # Load subsets
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
@@ -118,13 +110,7 @@ test <- Reduce(cbind, test)
 colnames(test) <- names(go_lists)
 
 DI2 <- tibble(cell_type = c(names(unlist(drift.index.SubclusterType))), all = c(unlist(calcDriftIndex(conserved = gene.lists.pos[[4]], species.1 = gene.lists.pos[[5]], species.2 = gene.lists.pos[[6]], invert = F))), TFs = c(unlist(calcDriftIndex(conserved = gene.lists.pos[[4]], species.1 = gene.lists.pos[[5]], species.2 = gene.lists.pos[[6]], subset = go_lists[[2]], invert = F))), NP_NTS = c(unlist(calcDriftIndex(conserved = gene.lists.pos[[4]], species.1 = gene.lists.pos[[5]], species.2 = gene.lists.pos[[6]], subset = go_lists[[7]], invert = F))))
-
 DI2 <- DI2[!is.na(DI2$NP_NTS),]
-
 DI3 <- melt(DI2)
 
 ggplot(DI3, aes(x = variable, y = value, group = variable, color = variable)) + geom_jitter(size = 1) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black") + scale_color_manual(values = c("blue", "red", "green")) + xlab(element_blank()) + ylab("Cellular Drift Index") + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8), axis.text.y = element_text(size = 8), axis.title = element_text(size = 10), legend.position = "none") + stat_compare_means()
-
-
-
-

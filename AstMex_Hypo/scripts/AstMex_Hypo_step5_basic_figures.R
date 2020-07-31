@@ -1,8 +1,6 @@
 library(Seurat)
-library(dplyr)
-library(tidyr)
-library(reshape2)
 library(viridis)
+library(ggplot2)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
@@ -27,7 +25,7 @@ DimPlot(object = hypo, group.by = "SubclusterType", reduction = "tsne", pt.size 
 dev.off()
 
 png("Figures/hypo_cluster_plot_species_morph.png", height = 8, width = 8, units = "in", res = 500)
-DimPlot(object = hypo, group.by = "species", reduction = "tsne", pt.size = .05, label = F,  label.size = 2, cols = cols0) + NoAxes() + theme(legend.position = c(0.91,0.87), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5)))
+DimPlot(object = hypo, group.by = "species", reduction = "tsne", pt.size = .05, label = F,  label.size = 2, cols = cols0) + NoAxes() + theme(legend.position = c(0.75,0.95), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5)))
 dev.off()
 
 png("Figures/hypo_cluster_plot_orig.ident_nolab.png", height = 8, width = 8, units = "in", res = 500)
@@ -49,10 +47,12 @@ dev.off()
 
 gene.lists <- readRDS("marker_gene_lists.rds")
 
-genes.to.plot <- lapply(gene.lists[[1]], function(x) row.names(x)[1:5])
+genes.to.plot.ast <- lapply(gene.lists[[1]], function(x) row.names(x)[1:2])
+
+ast.markers <- DotPlot(hypo, features = rev(unique(unlist(genes.to.plot.ast))), group.by = "Subtype", scale.max = 200) + coord_flip() + scale_color_viridis() + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(size = 6, angle = 90, hjust = 1, vjust = 0.5), axis.title = element_blank())
 
 png("Figures/hypo_dotplots_Subtype_markers.png", height = 10, width = 6.5, units = "in", res = 500) 
-DotPlot(hypo, features = rev(unique(unlist(genes.to.plot))), group.by = "Subtype", scale.max = 200) + coord_flip() + scale_color_viridis() + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(size = 8, angle = 45, hjust = 1, vjust = 1), axis.title = element_blank())
+ast.markers
 dev.off()
 
 # Make prop plot

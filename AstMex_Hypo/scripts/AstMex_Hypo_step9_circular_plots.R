@@ -1,17 +1,8 @@
-library(Seurat)
 library(Matrix)
 library(dplyr)
-library(scales)
-library(dplyr)
-library(tidyr)
-library(reshape2)
-library(ggdendro)
 library(phylogram)
 library(ggtree)
-library(grid)
-library(ggmap)
 library(ape)
-library(circlize)
 library(cowplot)
 
 # Load subsets
@@ -83,7 +74,7 @@ phylo.dist$group2 <- "all"
 DI.sub <- readRDS(file = "Ast_DI.sub.rds")
 
 DI.sub$group <- "all"
-DI.sub <- rbind(DI.sub, data.frame(SubclusterType = levels(hypo@meta.data$SubclusterType)[!(levels(hypo@meta.data$SubclusterType) %in% DI.sub$SubclusterType)], values = NA, Subtype = "replace", group = "all"))
+DI.sub <- rbind(DI.sub, data.frame(SubclusterType = levels(hypo@meta.data$SubclusterType)[!(levels(hypo@meta.data$SubclusterType) %in% DI.sub$SubclusterType)], values = NA, group = "all"))
 colnames(DI.sub) <- c("cell_type", "DI", "group", "group2")
 
 ## Need to change the x factor levels for combined.2 and label_data
@@ -136,7 +127,7 @@ combined <- rbind(combined, Reduce(rbind, new.rows[1:35]))
 prop.table.morph <- rbind(prop.table.morph, data.frame(cell_type = paste("Label", c(1:10), sep = "_"), variable = c(rep("astyanax_cave", 10), rep("astyanax_surface", 10)), value = 0))
 prop.table.cave <- rbind(prop.table.cave, data.frame(cell_type = paste("Label", c(1:10), sep = "_"), variable = c(rep("Molino_cave", 10), rep("Tinaja_cave", 10), rep("Pachon_cave", 10)), value = 0))
 
-DI.sub <- rbind(DI.sub, data.frame(cell_type = paste("Label", x = c(1:10), sep = "_"), DI = NA, group = "Label", group2 = "all"))
+DI.sub <- rbind(DI.sub, data.frame(cell_type = paste("Label", x = c(1:10), sep = "_"), DI = NA, group = "Label"))
 
 combined <- rbind(combined, data.frame(cell_type = paste("Label", x = c(1:10), sep = "_"), group2 = "all", group = "Label", tot = 0.1, x = c(168:177), hjust = 1, angle = 90, x2 = 173, angle2 = 90, subcluster.num = "", DI = NA,phylo.dist = NA))
 
@@ -163,8 +154,9 @@ prop.circle.plot.caves <- ggplot(prop.table.cave, aes(x=cell_type, y=value, fill
 
 ## Use annotation_custom to overlay all of the circle plots
 
+png("Figures/hypo_circle_plot_big.png", height = 8, width = 8, units = "in", res = 500)
 plot_grid(label.plot) + annotation_custom(ggplotGrob(prop.circle.plot), xmin = 0.125, xmax = 0.875, ymin = 0.125, ymax = 0.875) + annotation_custom(ggplotGrob(prop.circle.plot.caves), xmin = 0.0625, xmax = 0.9375, ymin = 0.0625, ymax = 0.9375) + annotation_custom(ggplotGrob(DI.plot), xmin = -0.025, xmax = 1.025, ymin = -0.025, ymax = 1.025) + annotation_custom(ggplotGrob(phylo.plot), xmin = -0.07, xmax = 1.07, ymin = -0.07, ymax = 1.07)
-
+dev.off()
 
 
 

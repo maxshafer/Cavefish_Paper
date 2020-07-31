@@ -1,9 +1,4 @@
 library(Seurat)
-library(Matrix)
-library(dplyr)
-library(ggplot2)
-library(cowplot)
-library(tidyr)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
@@ -26,7 +21,7 @@ subsets <- lapply(subsets, function(x) FindNeighbors(x, dims = 1:15, k.param = 3
 subsets <- lapply(subsets, function(x) FindClusters(x, resolution = 0.4, random.seed = 0))
 
 subsets[c(1:8)] <- lapply(subsets[c(1:8)], function(x) RunTSNE(object = x, reduction = "pca", dims = 1:15, tsne.method = "Rtsne", reduction.name = "tsne", reduction.key = "tsne_", seed.use = 1, check_duplicates = F)) # Olig2 is too small for tsne
-subsets[c(10:35)] <- lapply(subsets[c(10:35)], function(x) RunTSNE(object = x, reduction = "pca", dims = 1:15, tsne.method = "Rtsne", reduction.name = "tsne", reduction.key = "tsne_", seed.use = 1, check_duplicates = F))
+subsets[c(10:36)] <- lapply(subsets[c(10:36)], function(x) RunTSNE(object = x, reduction = "pca", dims = 1:15, tsne.method = "Rtsne", reduction.name = "tsne", reduction.key = "tsne_", seed.use = 1, check_duplicates = F))
 
 # Save subsets for further use
 saveRDS(subsets, file = "AstMex_63k_subsets.rds")
@@ -42,7 +37,7 @@ meta.data$SubclusterType <- paste(meta.data$Subtype, meta.data$RNA_snn_res.0.4, 
 meta.data$SubclusterType_number <- meta.data$RNA_snn_res.0.4
 
 
-hypo@meta.data$SubclusterType <- meta.data$SubclusterType[match(row.names(hypo@meta.data), row.names(meta.data))]
+hypo@meta.data$SubclusterType <- as.character(meta.data$SubclusterType[match(row.names(hypo@meta.data), row.names(meta.data))])
 hypo@meta.data$SubclusterType_number <- meta.data$SubclusterType_number[match(row.names(hypo@meta.data), row.names(meta.data))]
 
 # Remove GABA_5_1 which is contamination from Habenula
