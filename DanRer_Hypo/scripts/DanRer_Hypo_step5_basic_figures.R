@@ -52,10 +52,12 @@ dev.off()
 
 gene.lists <- readRDS("marker_gene_lists.rds")
 
-genes.to.plot <- lapply(gene.lists[[1]], function(x) row.names(x)[1:5])
+genes.to.plot.zeb <- lapply(gene.lists[[1]], function(x) row.names(x)[1:2])
+
+zeb.markers <- DotPlot(hypo, features = rev(unique(unlist(genes.to.plot.zeb))), group.by = "Subtype", scale.max = 200) + coord_flip() + scale_color_viridis() + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(size = 6, angle = 90, hjust = 1, vjust = 0.5), axis.title = element_blank())
 
 png("Figures/hypo_dotplots_Subtype_markers.png", height = 10, width = 6.5, units = "in", res = 500) 
-DotPlot(hypo, features = rev(unique(unlist(genes.to.plot))), group.by = "Subtype", scale.max = 200) + coord_flip() + scale_color_viridis() + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(size = 8, angle = 45, hjust = 1, vjust = 1), axis.title = element_blank())
+zeb.markers
 dev.off()
 
 # Make prop plot
@@ -72,8 +74,8 @@ prop.table$cell_type <- as.factor(prop.table$cell_type)
 
 prop.plots <- ggplot(prop.table, aes(x=cell_type, y=value, fill=variable)) + geom_bar(stat="identity")
 
-prop.plots <- prop.plots + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + theme(axis.line.y=element_blank(), axis.ticks.y=element_blank(), axis.title.x = element_text(size = 10), axis.title.y = element_blank(), plot.background = element_rect(fill = "transparent", color = NA), panel.background = element_blank()) + geom_hline(yintercept = 0.5, color = "grey36", size = 1, linetype = "dashed") + ylab("Sample Subtype frequency") + coord_flip() + guides(fill = guide_legend(title = "Origin (cave or surface)")) + scale_fill_manual(values = cols3)
+prop.plots.zeb <- prop.plots + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + theme(axis.line.y=element_blank(), axis.ticks.y=element_blank(), axis.title.x = element_text(size = 10), axis.title.y = element_blank(), plot.background = element_rect(fill = "transparent", color = NA), panel.background = element_blank()) + geom_hline(yintercept = 0.5, color = "grey36", size = 1, linetype = "dashed") + ylab("Sample Subtype frequency") + coord_flip() + guides(fill = guide_legend(title = "Origin (cave or surface)")) + scale_fill_manual(values = cols3)
 
 png("Figures/AstMex_Hypo_Subtype_prop.png", units = "in", res = 250, height = 10, width = 5)
-prop.plots
+prop.plots.zeb
 dev.off()
