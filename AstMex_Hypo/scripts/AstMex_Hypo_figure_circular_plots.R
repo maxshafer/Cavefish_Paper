@@ -4,6 +4,7 @@ library(phylogram)
 library(ggtree)
 library(ape)
 library(cowplot)
+library(ggplot2)
 
 # Load subsets
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
@@ -154,7 +155,7 @@ prop.circle.plot.caves <- ggplot(prop.table.cave, aes(x=cell_type, y=value, fill
 
 ## Use annotation_custom to overlay all of the circle plots
 
-png("Figures/hypo_circle_plot_big.png", height = 8, width = 8, units = "in", res = 500)
+pdf("Figures/hypo_circle_plot_big.pdf", height = 8, width = 8)
 plot_grid(label.plot) + annotation_custom(ggplotGrob(prop.circle.plot), xmin = 0.125, xmax = 0.875, ymin = 0.125, ymax = 0.875) + annotation_custom(ggplotGrob(prop.circle.plot.caves), xmin = 0.0625, xmax = 0.9375, ymin = 0.0625, ymax = 0.9375) + annotation_custom(ggplotGrob(DI.plot), xmin = -0.025, xmax = 1.025, ymin = -0.025, ymax = 1.025) + annotation_custom(ggplotGrob(phylo.plot), xmin = -0.07, xmax = 1.07, ymin = -0.07, ymax = 1.07)
 dev.off()
 
