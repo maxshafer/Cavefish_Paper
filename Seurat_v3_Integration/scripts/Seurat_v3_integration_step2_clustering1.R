@@ -38,14 +38,14 @@ subtype + res.0.1 + res.0.15 + res.0.2
 DefaultAssay(hypo.integrated) <- "RNA"
 Idents(hypo.integrated) <- "integrated_snn_res.0.15"
 
-DotPlot(hypo.integrated, features = c("gng3", "slc17a6a", "slc1a2b", "gad1b", "slc6a1b", "slc32a1", "prdx1", "plp1b", "mpz", "timp4.1", "her15.1", "sfrp5", "vim", "arl13b", "pde6d", "hbaa2", "mb", "abcb4", "epd", "fetub", "mrc1a", "stab1", "pfn1", "cd74a", "npc2", "pgd", "cotl1", "tspan18a", "cxcr4b", "IGKC", "srgn", "rel", "ltb4r", "alox5ap", "dusp2", "apoeb", "apoc1", "cd28l", "sla2")) + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
+DotPlot(hypo.integrated, features = c("gng3", "slc17a6a", "slc1a2b", "gad1b", "slc6a1b", "slc32a1", "prdx1", "plp1b", "mpz", "timp4.1", "her15.1", "sfrp5", "vim", "arl13b", "pde6d", "hbaa2", "mb", "abcb4", "epd", "fetub", "mrc1a", "stab1", "pfn1", "cd74a", "npc2", "pgd", "cotl1", "tspan18a", "cxcr4b", "IGKC", "srgn", "rel", "ltb4r", "alox5ap", "dusp2", "apoeb", "apoc1", "cd28l", "sla2")) + coord_flip()
 DotPlot(hypo.integrated, features = c("gng3", "gad1b", "galn", "oxt", "cd74b"))
 
-hypo.integrated <- RenameIdents(hypo.integrated, '0' = "Neuronal", '1' = "Neuronal", '2' = "Progenitors", '3' = "Prdx1_Positive", '4' = "Neuronal", 
-                                                  '5' = "Leucocytes", '6' = "Neuronal", '7' = "Microglia", '8' = "Neuronal", '9' = "Macrophages", 
-                                                  '10' = "Oligodendrocytes", '11' = "Neuronal", '12' = "Neuronal", '13' = "OPCs", 
-                                                  '14' = "Endothelial", '15' = "Neuronal", '16' = "Cilliated", '17' = "Erythrocytes", '18' = "Lymphatic",
-                                                  '19' = "Ependymal", '20' = "Neuronal", '21' = "Neuronal", '22' = "Neuronal", '23' = "Leucocytes")
+hypo.integrated <- RenameIdents(hypo.integrated, '0' = "Neuronal", '1' = "Neuronal", '2' = "Neuronal", '3' = "Progenitors", '4' = "Prdx1_Positive", 
+                                                  '5' = "Leucocytes", '6' = "Neuronal", '7' = "Microglia", '8' = "Neuronal", '9' = "Neuronal", 
+                                                  '10' = "Macrophages", '11' = "Oligodendrocytes", '12' = "Neuronal", '13' = "OPCs", 
+                                                  '14' = "Endothelial", '15' = "Neuronal", '16' = "Neuronal", '17' = "Erythrocytes", '18' = "Cilliated",
+                                                  '19' = "Lymphatic", '20' = "Ependymal", '21' = "Neuronal", '22' = "Neuronal")
 
 hypo.integrated$integrated_Subtype <- Idents(hypo.integrated)
 

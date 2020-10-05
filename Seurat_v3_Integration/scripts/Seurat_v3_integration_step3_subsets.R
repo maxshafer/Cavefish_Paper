@@ -11,8 +11,9 @@ Idents(hypo.integrated) <- "integrated_Subtype"
 
 # int.idents plus specific number of dimensions for integration/PCA
 int.idents <- levels(Idents(hypo.integrated))
-int.dims <- c(100, 50, 50, 35, 30, 25, 25, 20, 15, 15, 10, 10, 10) # dims1
-# int.dims <- c(50, 25, 25, 15, 15, 10, 10, 10, 10, 7, 7, 7, 7) # dims2
+int.idents <- int.idents[!(int.idents %in% "Cilliated")] # Remove cilliated, since they ar astyanax specific
+int.dims <- c(100, 50, 50, 35, 30, 25, 25, 20, 15, 15, 10, 10) # dims1
+# int.dims <- c(50, 25, 25, 15, 15, 10, 10, 10, 10, 7, 7, 7) # dims2
 
 # For each integrated subtype, re-run CCA/MNN integration
 subsets <- list()

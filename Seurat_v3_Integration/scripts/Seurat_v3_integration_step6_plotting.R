@@ -1,20 +1,13 @@
 library(Seurat)
-library(Matrix)
 library(dplyr)
 library(ggplot2)
-library(cowplot)
-library(tidyr)
 library(reshape2)
-library(ggdendro)
-library(phylogram)
-library(ggtree)
 library(grid)
-library(ggmap)
-library(dendextend)
+library(viridis)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
-hypo.integrated <- readRDS("Hypo_integrated_128k_1500VFs_100Dims_v1.rds")
+hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v2.rds")
 
 # Save plots (this doesn't work in for loop, dunno why not)
 cols <- c("#FDE725FF", "#22A884FF", "#414487FF")
@@ -91,9 +84,9 @@ library(patchwork)
 
 marker.sub + prop.plot + plot_layout(widths = c(3,1), guides = "collect")
 
+library(scales)
 
-
-highlight.cells <- lapply(levels(hypo.integrated@meta.data$integrated_Subtype)[grep("Glut", levels(hypo.integrated@meta.data$integrated_Subtype))], function(x) WhichCells(hypo.integrated, idents = x))
+highlight.cells <- lapply(levels(hypo.integrated@meta.data$integrated_Subtype)[grep("GABA", levels(hypo.integrated@meta.data$integrated_Subtype))], function(x) WhichCells(hypo.integrated, idents = x))
 colors <- hue_pal()(length(highlight.cells))
 
 DimPlot(hypo.integrated, reduction = "tsne", cells.highlight = highlight.cells, cols.highlight = colors, sizes.highlight = 0.1)
