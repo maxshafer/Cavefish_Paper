@@ -1,0 +1,48 @@
+module load VCFtools/0.1.16-foss-2018b-Perl-5.28.0
+        
+# weir_fst_pop_indels_10k_cave_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_indels.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_cave.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_cave.txt --out ../FST/weir_fst_pop_indels_10k_cave_vs_surface
+
+# weir_fst_pop_indels_10k_pachtinaja_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_indels.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_pachtinaja.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_pachtinaja.txt --out ../FST/weir_fst_pop_indels_10k_pachtinaja_vs_surface
+
+# weir_fst_pop_indels_perbase_cave_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_indels.vcf --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_cave.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_cave.txt --out ../FST/weir_fst_pop_indels_perbase_cave_vs_surface
+
+# weir_fst_pop_indels_perbase_pachtinaja_vs_surface.weir.fst
+vcftools --vcf filtered_astyanax_indels.vcf --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_pachtinaja.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_pachtinaja.txt --out ../FST/weir_fst_pop_indels_perbase_pachtinaja_vs_surface
+
+# weir_fst_pop_snps_10k_cave_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_snps.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_cave.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_cave.txt --out ../FST/weir_fst_pop_snps_10k_cave_vs_surface
+
+# weir_fst_pop_snps_10k_pachtinaja_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_snps.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_pachtinaja.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_pachtinaja.txt --out ../FST/weir_fst_pop_snps_10k_pachtinaja_vs_surface
+
+# weir_fst_pop_snps_perbase_cave_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_snps.vcf --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_cave.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_cave.txt --out ../FST/weir_fst_pop_snps_perbase_cave_vs_surface
+
+# weir_fst_pop_snps_perbase_pachtinaja_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_snps.vcf --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_pachtinaja.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_pachtinaja.txt --out ../FST/weir_fst_pop_snps_perbase_pachtinaja_vs_surface
+
+
+
+# weir_fst_pop_indels_10k_pachon_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_indels.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_pachon.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_pachon.txt --out ../FST/weir_fst_pop_indels_10k_pachon_vs_surface
+
+# weir_fst_pop_snps_10k_pachon_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_snps.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_pachon.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_pachon.txt --out ../FST/weir_fst_pop_snps_10k_pachon_vs_surface
+
+
+# weir_fst_pop_indels_10k_tinaja_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_indels.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_tinaja.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_tinaja.txt --out ../FST/weir_fst_pop_indels_10k_tinaja_vs_surface
+
+# weir_fst_pop_snps_10k_tinaja_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_snps.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_tinaja.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_tinaja.txt --out ../FST/weir_fst_pop_snps_10k_tinaja_vs_surface
+
+
+# weir_fst_pop_indels_10k_molino_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_indels.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_molino.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_molino.txt --out ../FST/weir_fst_pop_indels_10k_molino_vs_surface
+
+# weir_fst_pop_snps_10k_molino_vs_surface.windowed.weir.fst
+vcftools --vcf filtered_astyanax_snps.vcf --fst-window-size 10000 --weir-fst-pop ../FST/vcflist_surface.txt --weir-fst-pop ../FST/vcflist_molino.txt --keep ../FST/vcflist_surface.txt --keep ../FST/vcflist_molino.txt --out ../FST/weir_fst_pop_snps_10k_molino_vs_surface
+
