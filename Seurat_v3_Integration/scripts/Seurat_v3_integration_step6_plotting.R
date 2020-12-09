@@ -7,7 +7,7 @@ library(viridis)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
-hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v2.rds")
+hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v3.rds")
 
 # Save plots (this doesn't work in for loop, dunno why not)
 cols <- c("#FDE725FF", "#22A884FF", "#414487FF")
@@ -17,27 +17,31 @@ cols3 <- c("#FDE725FF", "#22A884FF", "#414487FF")
 
 # Save Species, species.2, subtype and subcluster plots
 png("Figures/Hypo_integrated_tsne_batch_species.png", height = 7.5, width = 7.5, res = 500, units = "in")
-DimPlot(hypo.integrated, reduction = "basetsne", group.by = "species", pt.size = .1, label = F, cols = cols) + NoAxes()+ theme(legend.position = c(0.75,0.95))
+DimPlot(hypo.integrated, reduction = "basetsne", group.by = "species", pt.size = .1, label = F, cols = cols, shuffle = T) + NoAxes()+ theme(legend.position = c(0.75,0.95))
 dev.off()
 
 png("Figures/Hypo_integrated_tsne_species.png", height = 7.5, width = 7.5, res = 500, units = "in")
-DimPlot(hypo.integrated, reduction = "tsne", group.by = "species", pt.size = .1, label = F, cols = cols) + NoAxes()+ theme(legend.position = c(0.75,0.95))
+DimPlot(hypo.integrated, reduction = "tsne", group.by = "species", pt.size = .1, label = F, cols = cols, shuffle = T) + NoAxes()+ theme(legend.position = c(0.75,0.95))
 dev.off()
 
 png("Figures/Hypo_integrated_tsne_species2.png", height = 7.5, width = 7.5, res = 500, units = "in")
-DimPlot(hypo.integrated, reduction = "tsne", group.by = "species.2", pt.size = .1, label = F, cols = cols2) + NoAxes() + theme(legend.position = c(0.75,0.95))
+DimPlot(hypo.integrated, reduction = "tsne", group.by = "species.2", pt.size = .1, label = F, cols = cols2, shuffle = T) + NoAxes() + theme(legend.position = c(0.75,0.95))
 dev.off()
 
 png("Figures/Hypo_integrated_tsne_subtype.png", height = 7.5, width = 7.5, res = 1000, units = "in")
-DimPlot(hypo.integrated, reduction = "tsne", group.by = "integrated_Subtype", pt.size = .1, label = TRUE) + NoAxes() + NoLegend()
+DimPlot(hypo.integrated, reduction = "tsne", group.by = "integrated_Subtype", pt.size = .1, label = TRUE, shuffle = T) + NoAxes() + NoLegend()
 dev.off()
 
 png("Figures/Hypo_integrated_tsne_subtype_nolabel.png", height = 7.5, width = 7.5, res = 1000, units = "in")
-DimPlot(hypo.integrated, reduction = "tsne", group.by = "integrated_Subtype", pt.size = .1, label = F) + NoAxes() + NoLegend()
+DimPlot(hypo.integrated, reduction = "tsne", group.by = "integrated_Subtype", pt.size = .1, label = F, shuffle = T) + NoAxes() + NoLegend()
 dev.off()
 
 png("Figures/Hypo_integrated_tsne_subclustertype_nolabel.png", height = 7.5, width = 7.5, res = 500, units = "in")
-DimPlot(hypo.integrated, reduction = "tsne", group.by = "integrated_SubclusterType", pt.size = .1, label = F) + NoAxes() + NoLegend()
+DimPlot(hypo.integrated, reduction = "tsne", group.by = "integrated_SubclusterType", pt.size = .1, label = F, shuffle = T) + NoAxes() + NoLegend()
+dev.off()
+
+png("Figures/Hypo_integrated_tsne_subclustertype.png", height = 7.5, width = 7.5, res = 500, units = "in")
+DimPlot(hypo.integrated, reduction = "tsne", group.by = "integrated_SubclusterType", pt.size = .1, label = T) + NoAxes() + NoLegend()
 dev.off()
 
 

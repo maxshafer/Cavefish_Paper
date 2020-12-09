@@ -74,6 +74,18 @@ for(i in 1:length(categories)) {
 
 names(norm.cluster) <- categories
 
+for(i in 1:length(categories)) {
+  for (j in 1:length(hypo.list)){
+    Idents(hypo.list[[j]]) <- categories[[i]]
+  }
+  idents.list <- lapply(hypo.list, function(x) levels(Idents(x))) # this is a list of the Type2 identities for each object, not the categories
+  idents.list <- lapply(seq_along(idents.list), function(x) idents.list[[x]][as.vector(table(Idents(hypo.list[[x]]))) > 1])
+
+  for(j in 1:length(hypo.list)) {
+    colnames(norm.cluster[[i]][[j]]) <- idents.list[[j]]
+  }
+}
+
 saveRDS(norm.cluster, file = "Normed_expression_data.rds")
 
 # ## After quality control, several cell types were removed, remove them from this list

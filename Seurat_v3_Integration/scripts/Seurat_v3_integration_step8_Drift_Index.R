@@ -43,12 +43,12 @@ calcDriftIndex <- function(conserved = conserved, species.1 = species.1, species
 	species.2 <- species.2[names]
 	DI <- list()
 	if (is.null(subset)) {
-		DI <- lapply(seq_along(conserved), function(x) sqrt( abs( (1 - (nrow(conserved[[x]]) / nrow(species.1[[x]]))) * (1 - (nrow(conserved[[x]]) / nrow(species.2[[x]]))) ) ))
+		DI <- lapply(seq_along(conserved), function(x) 1 - sqrt( abs( (1 - (nrow(conserved[[x]]) / nrow(species.1[[x]]))) * (1 - (nrow(conserved[[x]]) / nrow(species.2[[x]]))) ) ))
 	} else {
 		if (invert == FALSE) {
-		DI <- lapply(seq_along(conserved), function(x) sqrt( abs( (1 - (length(row.names(conserved[[x]])[row.names(conserved[[x]]) %in% subset]) / length(row.names(species.1[[x]])[row.names(species.1[[x]]) %in% subset]))) * (1 - (length(row.names(conserved[[x]])[row.names(conserved[[x]]) %in% subset])) / length(row.names(species.2[[x]])[row.names(species.2[[x]]) %in% subset])) ) ))
+		DI <- lapply(seq_along(conserved), function(x) 1 - sqrt( abs( (1 - (length(row.names(conserved[[x]])[row.names(conserved[[x]]) %in% subset]) / length(row.names(species.1[[x]])[row.names(species.1[[x]]) %in% subset]))) * (1 - (length(row.names(conserved[[x]])[row.names(conserved[[x]]) %in% subset])) / length(row.names(species.2[[x]])[row.names(species.2[[x]]) %in% subset])) ) ))
 	} else {
-		DI <- lapply(seq_along(conserved), function(x) sqrt( abs( (1 - (length(row.names(conserved[[x]])[!(row.names(conserved[[x]]) %in% subset)]) / length(row.names(species.1[[x]])[!(row.names(species.1[[x]]) %in% subset)]))) * (1 - (length(row.names(conserved[[x]])[!(row.names(conserved[[x]]) %in% subset)])) / length(row.names(species.2[[x]])[!(row.names(species.2[[x]]) %in% subset)])) ) ))
+		DI <- lapply(seq_along(conserved), function(x) 1 - sqrt( abs( (1 - (length(row.names(conserved[[x]])[!(row.names(conserved[[x]]) %in% subset)]) / length(row.names(species.1[[x]])[!(row.names(species.1[[x]]) %in% subset)]))) * (1 - (length(row.names(conserved[[x]])[!(row.names(conserved[[x]]) %in% subset)])) / length(row.names(species.2[[x]])[!(row.names(species.2[[x]]) %in% subset)])) ) ))
 	}
 	}
 	names(DI) <- names
@@ -123,7 +123,7 @@ calcDriftIndex2 <- function(cell_type1 = cell_type1, cell_type2 = cell_type2) {
   df$minimup_p_val <- apply(df[,grep("p_val$", colnames(df))], 1, function(x) metap::minimump(x)$p)
   df <- df[df$minimup_p_val < 0.05,]
   
-  DI <- sqrt( abs( (1 - (nrow(df) / nrow(cell_type1))) * (1 - (nrow(df) / nrow(cell_type2))) ) )
+  DI <- 1 - sqrt( abs( (1 - (nrow(df) / nrow(cell_type1))) * (1 - (nrow(df) / nrow(cell_type2))) ) )
   return(DI)
 }
 
@@ -173,7 +173,7 @@ mart[[2]] <- read.csv("mart_export_AstMex102_paralogs.txt", head = TRUE)
 names(mart) <- c("zebrafish", "astyanax")
 
 
-calcCorrDriftIndex <- function(cell_type1 = cell_type1, cell_type2 = cell_type2) {
+calcCorrDriftIndex <- function(cell_type1 = cell_type1, cell_type2 = cell_type2, mart.1 = mart[[1]], mart.2 = mart[[2]]) {
   colnames(cell_type1) <- paste("cell_type1", colnames(cell_type1), sep = "_")
   colnames(cell_type2) <- paste("cell_type2", colnames(cell_type2), sep = "_")
   index <- intersect(row.names(cell_type1), row.names(cell_type2))
@@ -196,8 +196,8 @@ calcCorrDriftIndex <- function(cell_type1 = cell_type1, cell_type2 = cell_type2)
   
   n.con <- length(row.names(df)) + a1 + a2
   
-  DI.corr <- sqrt( abs( (1 - (n.con / n.genes.1)) * (1 - (n.con / n.genes.2)) ) )
-  DI <- sqrt( abs( (1 - (nrow(df) / nrow(cell_type1))) * (1 - (nrow(df) / nrow(cell_type2))) ) )
+  DI.corr <- 1- sqrt( abs( (1 - (n.con / n.genes.1)) * (1 - (n.con / n.genes.2)) ) )
+  DI <- 1 - sqrt( abs( (1 - (nrow(df) / nrow(cell_type1))) * (1 - (nrow(df) / nrow(cell_type2))) ) )
   return(DI.corr)
 }
 
