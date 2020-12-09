@@ -11,7 +11,7 @@ setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 hypo.ast <- readRDS("AstMex_63k.rds")
 
 # Subset out the blood lineage cells
-
+Idents(hypo.ast) <- "Subtype"
 immune <- subset(hypo.ast, idents = c("Erythrocytes", "Tcells", "Bcells", "Mast_cells", "Neutrophils", "Macrophages", "Microglia"))
 immune <- FindVariableFeatures(immune, selection.method = "mvp")
 immune <- ScaleData(object = immune, features = VariableFeatures(immune))
@@ -43,13 +43,13 @@ immune.orig <- DimPlot(object = immune, group.by = "orig.ident", reduction = "ts
 
 ccr9a <- FeaturePlot(immune, features = c("ccr9a"), reduction = "tsne", pt.size = .25) + NoAxes() + ggtitle("")
 
-dot.plot <- DotPlot(immune, features = unique(markers$gene), group.by = "species_Subtype", scale.max = 150) + NoLegend() + coord_flip() + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + scale_color_viridis()
+dot.plot <- DotPlot(immune, features = unique(markers$gene), group.by = "species_Subtype", scale.max = 150) + coord_flip() + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + scale_color_viridis(option = "A")
 
 # Patchwork them together
 
 tsnes <- (immune.subtype + immune.morph + ccr9a + plot_layout(nrow = 3)) 
 
-tsnes / dot.plot + plot_layout(ncol = 2, widths = c(1.5,1))
+tsnes / dot.plot + plot_layout(ncol = 2, widths = c(1.5,1), guides = "collect")
 
 
 

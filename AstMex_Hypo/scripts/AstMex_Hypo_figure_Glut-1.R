@@ -12,6 +12,7 @@ library(phylogram)
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 hypo.ast <- readRDS("AstMex_63k.rds")
 
+Idents(hypo.ast) <- "Subtype"
 
 # Find morph specific clusters
 prop.table <- table(hypo@meta.data$SubclusterType, hypo@meta.data$species)
@@ -19,7 +20,7 @@ surface.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[1] < 
 cave.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[2] < 3 | x[1]/sum(x) > .9))]
 
 # Glut_1 has two cave-specific subclusters (stress response?)
-Idents(hypo.ast) <- "Subtype"
+
 glut1 <- subset(hypo.ast, idents = "Glut_1")
 
 glut1 <- FindVariableFeatures(glut1, selection.method = "mvp")
@@ -98,7 +99,6 @@ david.plot <- david.plot + geom_text(aes(x=Term, y=Count+0.5, label = Term), hju
 
 ## Combine plots using patchwork
 
-
 tsnes <- (glut1.subcluster + glut1.morph + plot_layout(ncol = 2)) 
 
 row1 <- tsnes + dend.plot + plot_layout(ncol = 3, widths = c(1,1,2))
@@ -113,7 +113,19 @@ row3 <- david.plot + gene + plot_layout(ncol = 2, widths = c(3,1))
 ## Small Sankey plot comes from separate script
 
 
+## Make small figure for galnain and oxytocin cluster expression
 
+galn <- subset(hypo.ast, idents = "Galanin")
+oxt <- subset(hypo.ast, idents = "Otpa/b_3")
+
+dot.galn <- DotPlot(galn, features = c("galn"), group.by = "morph", scale.min = 30, scale.max = 80, dot.scale = 4) 
+dot.galn <- dot.galn + theme(axis.title = element_blank(), axis.text.x = element_text(size = 8, angle = 90, hjust = 1, vjust = 0.5), axis.text.y = element_text(size = 8)) + scale_color_viridis_c(limits = c(-1.5,1.5), option = "B")
+
+dot.oxt <- DotPlot(oxt, features = c("oxt", "avp", "ENSAMXG00000021172"), group.by = "morph", scale.min = 30, scale.max = 80, dot.scale = 4) 
+dot.oxt <- dot.oxt + theme(axis.title = element_blank(), axis.text.x = element_text(size = 8, angle = 90, hjust = 1, vjust = 0.5), axis.text.y = element_blank()) + scale_color_viridis_c(limits = c(-1.5,1.5), option = "B")
+
+dev.new()
+dot.galn + dot.oxt + plot_layout(guides = "collect", widths = unit(c(7,13), "mm"), height = unit(c(35,35), "mm"))
 
 
 

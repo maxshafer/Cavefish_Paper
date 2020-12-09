@@ -119,5 +119,30 @@ names(gene.lists) <- c("conserved.markers", "surface.markers", "cave.markers", "
 saveRDS(gene.lists, file = "marker_gene_lists.rds")
 print("done cave SubclusterType markers")
 
+# Find markers for surface and cave versions of each subcluster
 
+Idents(hypo) <- "Subtype"
+de.markers <- lapply(levels(Idents(hypo)), function(x) {
+  subset <- subset(hypo, ident = x)
+  Idents(subset) <- "species"
+  markers <- FindMarkers(subset, ident.1 = "astyanax_surface", ident.2 = "astyanax_cave", verbose = T, max.cells.per.ident = 500)
+  return(markers)
+})
+names(de.markers) <- levels(Idents(hypo))
 
+gene.lists[[7]] <- de.markers
+
+Idents(hypo) <- "SubclusterType"
+de.markers.sub <- lapply(index, function(x) {
+  subset <- subset(hypo, ident = x)
+  Idents(subset) <- "species"
+  markers <- FindMarkers(subset, ident.1 = "astyanax_surface", ident.2 = "astyanax_cave", verbose = T, max.cells.per.ident = 500)
+  return(markers)
+})
+names(de.markers.sub) <- index
+
+gene.lists[[8]] <- de.markers.sub
+
+names(gene.lists)[7:8] <- c("de.markers", "de.markers.sub")
+saveRDS(gene.lists, file = "marker_gene_lists.rds")
+print("done DE SubclusterType markers")

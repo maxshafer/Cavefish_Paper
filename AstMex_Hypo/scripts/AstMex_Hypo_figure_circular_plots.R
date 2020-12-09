@@ -75,11 +75,41 @@ phylo.dist$group2 <- "all"
 DI.sub <- readRDS(file = "Ast_DI.sub.rds")
 
 DI.sub$group <- "all"
-DI.sub <- rbind(DI.sub, data.frame(SubclusterType = levels(hypo@meta.data$SubclusterType)[!(levels(hypo@meta.data$SubclusterType) %in% DI.sub$SubclusterType)], values = NA, group = "all"))
+df <- data.frame(SubclusterType = levels(hypo@meta.data$SubclusterType)[!(levels(hypo@meta.data$SubclusterType) %in% DI.sub$SubclusterType)], values = NA, group = "all")
+df$Subtype <- hypo@meta.data$Subtype[match(df$SubclusterType, hypo@meta.data$SubclusterType)]
+DI.sub <- rbind(DI.sub, df)
 colnames(DI.sub) <- c("cell_type", "DI", "group", "group2")
 
 ## Need to change the x factor levels for combined.2 and label_data
 DI.sub$cell_type <- factor(DI.sub$cell_type, levels = levels(hypo@meta.data$SubclusterType))
+
+
+
+
+
+
+
+
+
+#### Weir genes plot
+
+weir.genes <- readRDS(file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/astyanax_variants/weir.genes.rds")
+snp.genes <- Reduce(union, lapply(weir.genes, function(x) x$gene_name))
+
+combined.markers <- lapply(names(gene.lists.pos$conserved.markers.sub), function(x) unlist(Reduce(union, list(row.names(gene.lists.pos$conserved.markers.sub[[x]]), row.names(gene.lists.pos$cave.markers.sub[[x]]), row.names(gene.lists.pos$surface.markers.sub[[x]])))))
+snp.markers <- lapply(seq_along(gene.lists.pos$conserved.markers.sub), function(x) snp.genes[snp.genes %in% combined.markers[[x]]])
+per.snp.markers <- unlist(lapply(snp.markers, function(x) length(x)))/unlist(lapply(combined.markers, function(x) length(x)))
+per.snp.markers <- data.frame(cell_type = names(gene.lists.pos$conserved.markers.sub), per.snp = per.snp.markers*100, group = hypo@meta.data$Subtype[match(names(gene.lists.pos$conserved.markers.sub), hypo@meta.data$SubclusterType)], group2 = "all")
+
+# Change factor levels
+per.snp.markers$group <- factor(per.snp.markers$group, levels = levels(hypo@meta.data$Subtype))
+per.snp.markers$cell_type <- factor(per.snp.markers$cell_type, levels = levels(hypo@meta.data$SubclusterType))
+
+
+
+
+
+
 
 #### Label circle plot
 
@@ -98,9 +128,9 @@ label_data$angle2 <- ifelse(label_data$angle2 < -90, label_data$angle2+180, labe
 
 ## Combined all data into one df
 
-DI.sub$group <- hypo@meta.data$Subtype[match(DI.sub$cell_type, hypo@meta.data$SubclusterType)]
+# DI.sub$group <- hypo@meta.data$Subtype[match(DI.sub$cell_type, hypo@meta.data$SubclusterType)]
 
-combined <- merge(merge(label_data, DI.sub, sort = F), phylo.dist, sort = F)
+combined <- merge(merge(merge(label_data, DI.sub, sort = F), phylo.dist, sort = F), per.snp.markers, sort = F)
 #combined$phylo.dist <- combined$phylo.dist
 combined$cell_type <- factor(combined$cell_type, levels = levels(label_data$cell_type))
 combined$x <- as.numeric(combined$cell_type)
@@ -128,9 +158,10 @@ combined <- rbind(combined, Reduce(rbind, new.rows[1:35]))
 prop.table.morph <- rbind(prop.table.morph, data.frame(cell_type = paste("Label", c(1:10), sep = "_"), variable = c(rep("astyanax_cave", 10), rep("astyanax_surface", 10)), value = 0))
 prop.table.cave <- rbind(prop.table.cave, data.frame(cell_type = paste("Label", c(1:10), sep = "_"), variable = c(rep("Molino_cave", 10), rep("Tinaja_cave", 10), rep("Pachon_cave", 10)), value = 0))
 
-DI.sub <- rbind(DI.sub, data.frame(cell_type = paste("Label", x = c(1:10), sep = "_"), DI = NA, group = "Label"))
+DI.sub <- rbind(DI.sub, data.frame(cell_type = paste("Label", x = c(1:10), sep = "_"), DI = NA, group = "Label", group2 = "all"))
+per.snp.markers <- rbind(per.snp.markers, data.frame(cell_type = paste("Label", x = c(1:10), sep = "_"), per.snp = NA, group = "Label", group2 = "all"))
 
-combined <- rbind(combined, data.frame(cell_type = paste("Label", x = c(1:10), sep = "_"), group2 = "all", group = "Label", tot = 0.1, x = c(168:177), hjust = 1, angle = 90, x2 = 173, angle2 = 90, subcluster.num = "", DI = NA,phylo.dist = NA))
+combined <- rbind(combined, data.frame(cell_type = paste("Label", x = c(1:10), sep = "_"), group2 = "all", group = "Label", tot = 0.1, x = c(168:177), hjust = 1, angle = 90, x2 = 173, angle2 = 90, subcluster.num = "", DI = NA,phylo.dist = NA, per.snp = NA))
 
 
 
@@ -140,7 +171,7 @@ combined <- rbind(combined, data.frame(cell_type = paste("Label", x = c(1:10), s
 
 # line.plots <- ggplot(combined, aes(x = x, group = group)) + geom_ribbon(aes(ymin = 0, ymax = de.num, fill = group), alpha = 0.3) + geom_line(data = combined.2, aes(x = x, y = de.num, group = group2), colour = "red") + geom_ribbon(aes(ymin = 0, ymax = phylo.dist, fill = group), alpha = 0.3) + geom_line(data = combined.2, aes(x = x, y = phylo.dist, group = group2), colour = "black") + coord_polar() + ylim(-5000,1615) + theme(text = element_blank(), line = element_blank(), panel.background = element_rect(fill = "transparent", color = NA), plot.background = element_rect(fill = "transparent", color = NA)) + guides(fill = F, colour = F) + geom_hline(yintercept = 500, color = "grey75", size = 1, linetype = "dashed")
 
-phylo.plot <- ggplot(combined, aes(x = x, group = group)) + ylim(-10000,2500) + geom_hline(yintercept = c(750,1500), color = "grey75", size = 1, linetype = "dashed") + geom_ribbon(aes(ymin = 0, ymax = phylo.dist, fill = group), alpha = 0.3) + geom_line(data = combined, aes(x = x, y = phylo.dist, group = group2)) + coord_polar() + theme(text = element_blank(), line = element_blank(), panel.background = element_rect(fill = "transparent", color = NA), plot.background = element_rect(fill = "transparent", color = NA)) + guides(fill = F, colour = F)
+phylo.plot <- ggplot(combined, aes(x = x, group = group)) + ylim(-9000,2500) + geom_hline(yintercept = c(750,1500), color = "grey75", size = 1, linetype = "dashed") + geom_ribbon(aes(ymin = 0, ymax = phylo.dist, fill = group), alpha = 0.3) + geom_line(data = combined, aes(x = x, y = phylo.dist, group = group2)) + coord_polar() + theme(text = element_blank(), line = element_blank(), panel.background = element_rect(fill = "transparent", color = NA), plot.background = element_rect(fill = "transparent", color = NA)) + guides(fill = F, colour = F)
 
 # de.num.plot <- ggplot(combined, aes(x = x, group = group, fill = group)) + ylim(-5500,2000) + geom_hline(yintercept = c(500, 1000), color = "grey75", size = 1, linetype = "dashed") + geom_ribbon(aes(ymin = 0, ymax = de.num, fill = group), alpha = 0.3) + geom_line(data = combined.2, aes(x = x, y = de.num, group = group2), colour = "red") + coord_polar() + theme(text = element_blank(), line = element_blank(), panel.background = element_rect(fill = "transparent", color = NA), plot.background = element_rect(fill = "transparent", color = NA)) + guides(fill = F, colour = F)
 
@@ -148,15 +179,37 @@ label.plot <- ggplot(label_data, aes(y=tot, x= cell_type, fill = group, colour =
 
 DI.plot <- ggplot(DI.sub, aes(y = DI, x = cell_type, group = group)) + geom_point(colour = "blue", size = 2) + geom_line(colour = "blue", size = 1.5) + coord_polar() + geom_hline(yintercept = 0.5, color = "grey36", size = 1, linetype = "dashed") + theme(text = element_blank(), line = element_blank(), plot.background = element_rect(fill = "transparent", color = NA), panel.background = element_rect(fill = "transparent", color = NA)) + ylim(-5,2) + guides(fill = F)
 
-prop.circle.plot <- ggplot(prop.table.morph, aes(x=cell_type, y=value, fill=variable)) + geom_bar(stat="identity") + theme(text = element_blank(), line = element_blank(), plot.background = element_rect(fill = "transparent", color = NA), panel.background = element_rect(fill = "transparent", color = NA)) + ylim(-3.25,2) + coord_polar() + geom_hline(yintercept = 0.5, color = "white", size = 1, linetype = "dashed") + ylab("Species morph Subcluster frequency") + guides(fill = FALSE) + scale_fill_viridis_d(direction = -1)
+snp.plot <- ggplot(per.snp.markers, aes(y = .25, x = cell_type, fill = per.snp, group = group)) + geom_tile() + coord_polar() + theme(axis.text = element_blank(), axis.title = element_blank(), line = element_blank(), plot.background = element_rect(fill = "transparent", color = NA), panel.background = element_rect(fill = "transparent", color = NA)) + scale_fill_gradient(low = "white", high = "orange") + ylim(-20,6) + guides(fill = F)
 
-prop.circle.plot.caves <- ggplot(prop.table.cave, aes(x=cell_type, y=value, fill=variable)) + geom_bar(stat="identity") + theme(text = element_blank(), line = element_blank(), plot.background = element_rect(fill = "transparent", color = NA), panel.background = element_rect(fill = "transparent", color = NA)) + ylim(-5.5,2) + coord_polar() + geom_hline(yintercept = c(0.333, 0.666), color = "black", size = 0.5, linetype = "dashed") + scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) + guides(fill = F)
+prop.circle.plot <- ggplot(prop.table.morph, aes(x=cell_type, y=value, fill=variable)) + geom_bar(stat="identity") + theme(axis.text = element_blank(), axis.title = element_blank(), line = element_blank(), plot.background = element_rect(fill = "transparent", color = NA), panel.background = element_rect(fill = "transparent", color = NA)) + ylim(-3.25,2) + coord_polar() + geom_hline(yintercept = 0.5, color = "white", size = 1, linetype = "dashed") + ylab("Species morph Subcluster frequency") + scale_fill_viridis_d(direction = -1) + guides(fill = F)
+
+prop.circle.plot.caves <- ggplot(prop.table.cave, aes(x=cell_type, y=value, fill=variable)) + geom_bar(stat="identity") + theme(axis.text = element_blank(), axis.title = element_blank(), line = element_blank(), plot.background = element_rect(fill = "transparent", color = NA), panel.background = element_rect(fill = "transparent", color = NA)) + ylim(-5.5,2) + coord_polar() + geom_hline(yintercept = c(0.333, 0.666), color = "black", size = 0.5, linetype = "dashed") + scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) + guides(fill = F)
+
+
+# ## Patchwork version
+# 
+# # t and b, top and bottom bounds of the area in the grid
+# # l and r, left and right bounds
+# 
+# 
+# layout <- c(
+#   area(t = 30, l = 30, b = 90, r = 90), # label.plot
+#   area(t = 32, l = 32, b = 88, r = 88), # prop.circle.plot
+#   area(t = 28, l = 28, b = 92, r = 92), # prop.circle.plot.caves
+#   area(t = 22, l = 22, b = 98, r = 98), # DI.plot
+#   area(t = 20, l = 20, b = 100, r = 100), # snp.plot
+#   area(t = 10, l = 10, b = 110, r = 110)  # phylo.plot
+# )
+# dev.new()
+# label.plot + prop.circle.plot + prop.circle.plot.caves + DI.plot + snp.plot + phylo.plot + plot_layout(design = layout, guides = "collect")
 
 
 ## Use annotation_custom to overlay all of the circle plots
 
+# Need to adjust the snp plot so that it is thinner (change y lims to negative values)
+
 pdf("Figures/hypo_circle_plot_big.pdf", height = 8, width = 8)
-plot_grid(label.plot) + annotation_custom(ggplotGrob(prop.circle.plot), xmin = 0.125, xmax = 0.875, ymin = 0.125, ymax = 0.875) + annotation_custom(ggplotGrob(prop.circle.plot.caves), xmin = 0.0625, xmax = 0.9375, ymin = 0.0625, ymax = 0.9375) + annotation_custom(ggplotGrob(DI.plot), xmin = -0.025, xmax = 1.025, ymin = -0.025, ymax = 1.025) + annotation_custom(ggplotGrob(phylo.plot), xmin = -0.07, xmax = 1.07, ymin = -0.07, ymax = 1.07)
+plot_grid(label.plot) + annotation_custom(ggplotGrob(prop.circle.plot), xmin = 0.125, xmax = 0.875, ymin = 0.125, ymax = 0.875) + annotation_custom(ggplotGrob(prop.circle.plot.caves), xmin = 0.0625, xmax = 0.9375, ymin = 0.0625, ymax = 0.9375) + annotation_custom(ggplotGrob(DI.plot), xmin = -0.015, xmax = 1.015, ymin = -0.015, ymax = 1.015) + annotation_custom(ggplotGrob(snp.plot), xmin = -0.08, xmax = 1.08, ymin = -0.08, ymax = 1.08) + annotation_custom(ggplotGrob(phylo.plot), xmin = -0.115, xmax = 1.115, ymin = -0.115, ymax = 1.115)
 dev.off()
 
 
