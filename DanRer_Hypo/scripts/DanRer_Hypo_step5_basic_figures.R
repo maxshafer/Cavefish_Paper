@@ -45,7 +45,7 @@ dev.off()
 # DotPlots for major markers
 
 png("Figures/hypo_dotplots_markers.png", height = 10, width = 6.5, units = "in", res = 500) 
-DotPlot(object = hypo, features = rev(c("gng3", "slc17a6b", "gad2", "her4.2", "prdx1", "otpa", "cd74a", "mpz", "mrc1a", "epd", "hopx", "ba1")), group.by = "Subtype") + theme(legend.position = "right") + RotatedAxis() + scale_color_viridis()
+DotPlot(object = hypo, features = rev(c("gng3", "slc18a3a", "slc44a2", "slc44a5a", "slc44a5b", "slc17a6a", "slc17a6b", "slc6a9", "gad1b", "gad2", "slc32a1", "her4.2", "prdx1", "otpa", "cd74a", "mpz", "mrc1a", "epd", "hopx", "ba1")), group.by = "Subtype") + theme(legend.position = "right") + RotatedAxis() + scale_color_viridis()
 dev.off()
 
 # DotPlots for Subtype marker genes

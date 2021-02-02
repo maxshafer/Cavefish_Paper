@@ -147,3 +147,18 @@ hypo.integrated@meta.data$integrated_SubclusterType <- factor(hypo.integrated@me
 saveRDS(hypo.integrated, file = "Hypo_integrated_128k_1500VFs_100Dims_v1.rds")
 saveRDS(subsets.all, file = "Hypo_integrated_128k_1500VFs_100Dims_subsets_dims1.rds")
 
+
+## Remove weird subclusters (from species-specific analysis), but don't rename others	
+## Save as V3
+
+Idents(hypo.integrated) <- "integrated_SubclusterType"	
+
+hypo.integrated <- subset(hypo.integrated, cells = WhichCells(hypo.integrated, idents = c("Glut_2_5", "Glut_2_4", "Glut_3_6", "Glut_5_5", "Glut_3_7", "GABA_1_12"), invert = T))	
+
+hypo.integrated@meta.data$integrated_SubclusterType <- factor(hypo.integrated@meta.data$integrated_SubclusterType, levels(hypo.integrated@meta.data$integrated_SubclusterType)[!(levels(hypo.integrated@meta.data$integrated_SubclusterType) %in% c("Glut_2_5", "Glut_2_4", "Glut_3_6", "Glut_5_5", "Glut_3_7", "GABA_1_12"))])	
+hypo.integrated@meta.data$integrated_Subtype <- factor(hypo.integrated@meta.data$integrated_Subtype, levels = c("Endothelial", "Erythrocytes", "Ciliated", "Ependymal", "Progenitors", "Oligodendrocyte_Precursor_Cells", "Oligodendrocytes", "GABA_0", "GABA_1", "GABA_2", "GABA_3", "GABA_4", "GABA_5", "Prdx1_Positive", "Glut_0", "Glut_1", "Glut_2", "Glut_3", "Glut_4", "Glut_5", "Glut_6", "Lymphatic", "Leucocytes", "Macrophages", "Microglia"))	
+
+hypo.integrated@meta.data <- hypo.integrated@meta.data[WhichCells(hypo.integrated),]
+
+save(hypo.integrated, file = "Hypo_integrated_130k_1500VFs_100Dims_v3.rds")
+

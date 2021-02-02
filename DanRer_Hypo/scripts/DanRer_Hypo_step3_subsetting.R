@@ -26,6 +26,10 @@ subsets <- lapply(subsets, function(x) ScaleData(x, features = VariableFeatures(
 subsets <- lapply(subsets, function(x) RunPCA(object = x, features = VariableFeatures(x), npcs = 15, set.seed = 0))
 subsets <- lapply(subsets, function(x) FindNeighbors(x, dims = 1:15, k.param = 30, nn.eps = 0.5))
 subsets <- lapply(subsets, function(x) FindClusters(x, resolution = 0.4, random.seed = 0))
+subsets <- lapply(subsets, function(x) FindClusters(x, resolution = 0.2, random.seed = 0))
+subsets <- lapply(subsets, function(x) FindClusters(x, resolution = 0.6, random.seed = 0))
+
+
 
 subsets <- lapply(subsets, function(x) RunTSNE(object = x, reduction = "pca", dims = 1:15, tsne.method = "Rtsne", reduction.name = "tsne", reduction.key = "tsne_", seed.use = 1, check_duplicates = F)) # Olig2 is too small for tsne
 
