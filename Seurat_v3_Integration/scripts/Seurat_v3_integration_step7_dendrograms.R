@@ -7,15 +7,15 @@ library(ggtree)
 
 # Load subsets
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
-hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v3.rds")
+hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
 
-# Add zebrafish as a morph ID for dendrograms
-# Add int idents for each species.2
-
-hypo.integrated@meta.data$morph[grep("hypo", hypo.integrated@meta.data$orig.ident)] <- "zebrafish"
-
-hypo.integrated@meta.data$integrated_Subtype_species <- paste(hypo.integrated@meta.data$integrated_Subtype, hypo.integrated@meta.data$species.2, sep = "_")
-hypo.integrated@meta.data$integrated_SubclusterType_species <- paste(hypo.integrated@meta.data$integrated_SubclusterType, hypo.integrated@meta.data$species.2, sep = "_")
+# # Add zebrafish as a morph ID for dendrograms
+# # Add int idents for each species.2
+# 
+# hypo.integrated@meta.data$morph[grep("hypo", hypo.integrated@meta.data$orig.ident)] <- "zebrafish"
+# 
+# hypo.integrated@meta.data$integrated_Cluster_species <- paste(hypo.integrated@meta.data$integrated_Cluster, hypo.integrated@meta.data$species.2, sep = "_")
+# hypo.integrated@meta.data$integrated_Subcluster_species <- paste(hypo.integrated@meta.data$integrated_Subcluster, hypo.integrated@meta.data$species.2, sep = "_")
 
 # Change to integrated assay for dendrograms? or use RNA assay?
 DefaultAssay(hypo.integrated) <- "RNA"
@@ -24,19 +24,19 @@ DefaultAssay(hypo.integrated) <- "RNA"
 
 dendrograms <- list()
 
-Idents(hypo.integrated) <- "integrated_Subtype"
+Idents(hypo.integrated) <- "integrated_Cluster"
 hypo.integrated <- BuildClusterTree(hypo.integrated)
 dendrograms[[1]] <- Tool(hypo.integrated, slot = "BuildClusterTree")
 
-Idents(hypo.integrated) <- "integrated_SubclusterType"
+Idents(hypo.integrated) <- "integrated_Subcluster"
 hypo.integrated <- BuildClusterTree(hypo.integrated)
 dendrograms[[2]] <- Tool(hypo.integrated, slot = "BuildClusterTree")
 
-# Idents(hypo.integrated) <- "integrated_Subtype_species"
+# Idents(hypo.integrated) <- "integrated_Cluster_species"
 # hypo.integrated <- BuildClusterTree(hypo.integrated)
 # dendrograms[[3]] <- Tool(hypo.integrated, slot = "BuildClusterTree")
 # 
-# Idents(hypo.integrated) <- "integrated_SubclusterType_species"
+# Idents(hypo.integrated) <- "integrated_Subcluster_species"
 # hypo.integrated <- BuildClusterTree(hypo.integrated)
 # dendrograms[[4]] <- Tool(hypo.integrated, slot = "BuildClusterTree")
 
@@ -45,7 +45,7 @@ dendrograms[[2]] <- Tool(hypo.integrated, slot = "BuildClusterTree")
 
 ## Function for calculating dendrograms by species for each cluster/subcluster
 
-denDro <- function(object = hypo.integrated, cluster = cluster, idents = "integrated_Subtype", assay = "RNA", genes = VariableFeatures(hypo.integrated)) {
+denDro <- function(object = hypo.integrated, cluster = cluster, idents = "integrated_Cluster", assay = "RNA", genes = VariableFeatures(hypo.integrated)) {
 	Idents(object) <- idents
 	object <- subset(object, idents = cluster)
 	Idents(object) <- "morph"
@@ -56,9 +56,9 @@ denDro <- function(object = hypo.integrated, cluster = cluster, idents = "integr
 
 ## For clusters/cell types
  
-dendrograms.subtype <- lapply(levels(hypo.integrated@meta.data$integrated_Subtype), function(x) denDro(object = hypo.integrated, cluster = x, idents = "integrated_Subtype", assay = "RNA"))
+dendrograms.subtype <- lapply(levels(hypo.integrated@meta.data$integrated_Cluster), function(x) denDro(object = hypo.integrated, cluster = x, idents = "integrated_Cluster", assay = "RNA"))
 
-names(dendrograms.subtype) <- levels(hypo.integrated@meta.data$integrated_Subtype)
+names(dendrograms.subtype) <- levels(hypo.integrated@meta.data$integrated_Cluster)
 
 dendrograms[[3]] <- dendrograms.subtype
 
@@ -71,15 +71,15 @@ densityTree(dendrograms.subtype, type = "cladogram", use.edge.length = F, nodes 
 
 ## For Subclusters
 
-SubclusterTypes <- unique(hypo.integrated@meta.data$integrated_SubclusterType)
-index <- table(hypo.integrated@meta.data$integrated_SubclusterType, hypo.integrated@meta.data$morph)
+Subclusters <- unique(hypo.integrated@meta.data$integrated_Subcluster)
+index <- table(hypo.integrated@meta.data$integrated_Subcluster, hypo.integrated@meta.data$morph)
 index <- t(apply(index, 1, function(x) x > 2))
 index2 <- apply(index, 1, function(x) length(x[x]) > 4)
 index <- apply(index, 1, function(x) length(x[x]) > 2)
 
-dendrograms.subclustertype <- lapply(SubclusterTypes[SubclusterTypes %in% names(index)[index]], function(x) denDro(object = hypo.integrated, cluster = x, idents = "integrated_SubclusterType", assay = "RNA"))
+dendrograms.subclustertype <- lapply(Subclusters[Subclusters %in% names(index)[index]], function(x) denDro(object = hypo.integrated, cluster = x, idents = "integrated_Subcluster", assay = "RNA"))
 
-names(dendrograms.subclustertype) <- SubclusterTypes[SubclusterTypes %in% names(index)[index]]
+names(dendrograms.subclustertype) <- Subclusters[Subclusters %in% names(index)[index]]
 
 dendrograms[[4]] <- dendrograms.subclustertype
 
@@ -97,7 +97,7 @@ densityTree(dendrograms.subclustertype[names(dendrograms.subclustertype) %in% na
 # Name and as.dendrogram the list
 
 
-names(dendrograms) <- c("integrated_Subtype", "integrated_SubclusterType", "Subtype_species-species-morph", "SubclusterType_species-species-morph")
+names(dendrograms) <- c("integrated_Cluster", "integrated_Subcluster", "Cluster_species-species-morph", "Subcluster_species-species-morph")
 
 saveRDS(dendrograms, file = "Zeb_Ast_dendrograms_integrated.rds")
 

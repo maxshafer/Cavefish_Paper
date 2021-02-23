@@ -3,7 +3,7 @@ library(Matrix)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
-hypo <- readRDS("AstMex_63k.rds")
+hypo <- readRDS("AstMex_63k_vR.rds")
 
 # Subset to cave and surface versions, and find conserved, and species-morph specific marker genes
 
@@ -13,13 +13,13 @@ Idents(hypo) <- "species"
 hypo.surface <- subset(hypo, idents = "astyanax_surface")
 hypo.cave <- subset(hypo, idents = "astyanax_cave")
 
-############## Subtype Markers ##############
+############## Cluster Markers ##############
 
 # Find Conserved Markers
 
-Idents(hypo) <- "Subtype"
-Idents(hypo.surface) <- "Subtype"
-Idents(hypo.cave) <- "Subtype"
+Idents(hypo) <- "Cluster"
+Idents(hypo.surface) <- "Cluster"
+Idents(hypo.cave) <- "Cluster"
 
 print("Done loading, starting FindConservedMarkers")
 
@@ -43,9 +43,9 @@ names(cave.markers) <- levels(Idents(hypo.cave))
 gene.lists[[3]] <- cave.markers
 
 saveRDS(gene.lists, file = "marker_gene_lists.rds")
-print("Done Subtype marker gene lists")
+print("Done Cluster marker gene lists")
 
-############## SubclusterType Markers ##############
+############## Subcluster Markers ##############
 
 ## Find Conserved Sub Markers
 ## First identify those subclusters that are specific (> 90%), I don't care about DE genes for these cells types
@@ -54,13 +54,13 @@ print("Done Subtype marker gene lists")
 
 gene.lists <- readRDS("marker_gene_lists.rds")
 
-Idents(hypo) <- "SubclusterType"
-Idents(hypo.surface) <- "SubclusterType"
-Idents(hypo.cave) <- "SubclusterType"
+Idents(hypo) <- "Subcluster"
+Idents(hypo.surface) <- "Subcluster"
+Idents(hypo.cave) <- "Subcluster"
 
 
 # Find morph specific clusters
-prop.table <- table(hypo@meta.data$SubclusterType, hypo@meta.data$species)
+prop.table <- table(hypo@meta.data$Subcluster, hypo@meta.data$species)
 surface.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[1] < 3 | x[2]/sum(x) > .9))]
 cave.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[2] < 3 | x[1]/sum(x) > .9))]
 
@@ -84,7 +84,7 @@ conserved.markers.sub <- conserved.markers.sub[levels(Idents(hypo))]
 gene.lists[[4]] <- conserved.markers.sub
 
 saveRDS(gene.lists, file = "marker_gene_lists.rds")
-print("done conserved SubclusterType markers")
+print("done conserved Subcluster markers")
 
 # Find markers for surface and cave versions of each subcluster
 
@@ -100,7 +100,7 @@ surface.markers.sub <- surface.markers.sub[levels(Idents(hypo))]
 gene.lists[[5]] <- surface.markers.sub
 
 saveRDS(gene.lists, file = "marker_gene_lists.rds")
-print("done surface SubclusterType markers")
+print("done surface Subcluster markers")
 
 
 cave.markers.sub <- lapply(index, function(x) FindMarkers(hypo.cave, ident.1 = x, verbose = T, max.cells.per.ident = 500))
@@ -114,14 +114,14 @@ cave.markers.sub <- cave.markers.sub[levels(Idents(hypo))]
 
 gene.lists[[6]] <- cave.markers.sub
 
-names(gene.lists) <- c("conserved.markers", "surface.markers", "cave.markers", "conserved.markers.sub", "surface.markers.sub", "cave.markers.sub")
+names(gene.lists) <- c("cluster.conserved", "cluster.surface", "cluster.cave", "subcluster.conserved", "subcluster.surface", "subcluster.cave")
 
 saveRDS(gene.lists, file = "marker_gene_lists.rds")
-print("done cave SubclusterType markers")
+print("done cave Subcluster markers")
 
 # Find markers for surface and cave versions of each subcluster
 
-Idents(hypo) <- "Subtype"
+Idents(hypo) <- "Cluster"
 de.markers <- lapply(levels(Idents(hypo)), function(x) {
   subset <- subset(hypo, ident = x)
   Idents(subset) <- "species"
@@ -132,7 +132,7 @@ names(de.markers) <- levels(Idents(hypo))
 
 gene.lists[[7]] <- de.markers
 
-Idents(hypo) <- "SubclusterType"
+Idents(hypo) <- "Subcluster"
 de.markers.sub <- lapply(index, function(x) {
   subset <- subset(hypo, ident = x)
   Idents(subset) <- "species"
@@ -143,6 +143,6 @@ names(de.markers.sub) <- index
 
 gene.lists[[8]] <- de.markers.sub
 
-names(gene.lists)[7:8] <- c("de.markers", "de.markers.sub")
+names(gene.lists)[7:8] <- c("cluster.de", "subcluster.de")
 saveRDS(gene.lists, file = "marker_gene_lists.rds")
-print("done DE SubclusterType markers")
+print("done DE Subcluster markers")

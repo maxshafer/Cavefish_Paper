@@ -3,7 +3,7 @@ library(fdrtool)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
-## Take sets of conserved, and species specific marker genes (start with Subtypes)
+## Take sets of conserved, and species specific marker genes (start with Clusters)
 ## For each species, take each gene (apply), and query mart database for paralogs
 ## Ask if any of the paralogs are in species.2 list
 ## Append species.1 list with paralog expressed (if more then 1??), plus LCA
@@ -18,8 +18,8 @@ names(mart) <- c("zebrafish", "astyanax")
 
 ## Load marker gene lists
 
-gene.lists.pos <- readRDS(file = "drift_gene_lists_pos.rds")
-DI.list <- readRDS(file = "DI_results.rds")
+gene.lists.pos <- readRDS(file = "drift_gene_lists_pos_2.rds")
+SI.list <- readRDS(file = "SI_results_trinarized_markers.rds")
 
 ### Association between whether a gene is a specieis specific marker, and it being a paralog of a marker gene in either species, or conserved between species.
 
@@ -75,19 +75,19 @@ fisher.results.3 <- lapply(paralog.numbers, function(x) fisher.test(matrix(data 
 fisher.results.3 <- do.call(rbind, fisher.results.3)
 row.names(fisher.results.3) <- names(gene.lists.pos[[1]])
 
-subtypes <- data.frame(do.call(rbind, paralog.numbers))
-row.names(subtypes) <- names(gene.lists.pos[[1]])
-subtypes$percent.para.1 <- unlist(apply(subtypes, 1, function(x) x[1]/sum(x[1], x[3])))*100
-subtypes$percent.para.2 <- unlist(apply(subtypes, 1, function(x) x[5]/sum(x[5], x[7])))*100
-# subtypes$fisher.pval <- as.numeric(fisher.results[,1])
-subtypes$fisher.odds.1 <- as.numeric(fisher.results.1[,3])
-subtypes$fisher.pvalue.1 <- as.numeric(fisher.results.1[,1])
-subtypes$fisher.odds.2 <- as.numeric(fisher.results.2[,3])
-subtypes$fisher.pvalue.2 <- as.numeric(fisher.results.2[,1])
-subtypes$Subtypes <- row.names(subtypes)
-subtypes$driftindex <- DI.list[[1]]$values
+clusters <- data.frame(do.call(rbind, paralog.numbers))
+row.names(clusters) <- names(gene.lists.pos[[1]])
+clusters$percent.para.1 <- unlist(apply(clusters, 1, function(x) x[1]/sum(x[1], x[3])))*100
+clusters$percent.para.2 <- unlist(apply(clusters, 1, function(x) x[5]/sum(x[5], x[7])))*100
+# clusters$fisher.pval <- as.numeric(fisher.results[,1])
+clusters$fisher.odds.1 <- as.numeric(fisher.results.1[,3])
+clusters$fisher.pvalue.1 <- as.numeric(fisher.results.1[,1])
+clusters$fisher.odds.2 <- as.numeric(fisher.results.2[,3])
+clusters$fisher.pvalue.2 <- as.numeric(fisher.results.2[,1])
+clusters$Clusters <- row.names(clusters)
+clusters$driftindex <- SI.list[[1]]$values
 
-subtypes$Subtypes <- factor(subtypes$Subtypes, levels = levels(hypo.integrated@meta.data$integrated_Subtype))
+clusters$Clusters <- factor(clusters$Clusters, levels = levels(hypo.integrated@meta.data$integrated_Cluster))
 
 
 #### For subclusters!
@@ -111,14 +111,14 @@ subclusters$fisher.pvalue.1 <- as.numeric(fisher.results.1[,1])
 subclusters$fisher.odds.2 <- as.numeric(fisher.results.2[,3])
 subclusters$fisher.pvalue.2 <- as.numeric(fisher.results.2[,1])
 subclusters$Subclusters <- row.names(subclusters)
-subclusters$driftindex <- DI.list[[2]]$values
-subclusters$Subtype <- hypo.integrated@meta.data$integrated_Subtype[match(subclusters$Subclusters, hypo.integrated@meta.data$integrated_SubclusterType)]
+subclusters$driftindex <- SI.list[[2]]$values
+subclusters$Cluster <- hypo.integrated@meta.data$integrated_Cluster[match(subclusters$Subclusters, hypo.integrated@meta.data$integrated_Subcluster)]
 
-subclusters$Subtype <- factor(subclusters$Subtype, levels = levels(hypo.integrated@meta.data$integrated_Subtype))
+subclusters$Cluster <- factor(subclusters$Cluster, levels = levels(hypo.integrated@meta.data$integrated_Cluster))
 
 ## Save results
 
-para.results <- list(subtypes, subclusters)
+para.results <- list(clusters, subclusters)
 
-saveRDS(para.results, file = "Paralog_results.rds")
+saveRDS(para.results, file = "Paralog_results_trinarized_markers.rds")
 

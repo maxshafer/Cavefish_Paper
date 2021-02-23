@@ -51,6 +51,14 @@ index <- index[order(index[,1], index[,3]),]
 
 hypo.zeb@meta.data$Subcluster <- factor(hypo.zeb@meta.data$Subcluster, levels = index$Subcluster)
 
+# Remove and rename other columns
+hypo.zeb@meta.data <- hypo.zeb@meta.data[,c(1:6,9:13)]
+colnames(hypo.zeb@meta.data) <- c("orig.ident","nCount_RNA","nFeature_RNA","sex","RNA_snn_res.0.6","seurat_clusters","Subcluster_number",
+                                  "species","percent.mt","Cluster","Subcluster")
+
+# Calcualte UMAP embedding
+hypo.zeb <- RunUMAP(object = hypo.zeb, reduction = "pca", dims = 1:50, reduction.name = "umap", reduction.key = "umap_", seed.use = 1, check_duplicates = F, min.dist = 0.5)
+
 saveRDS(hypo.zeb, file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k_vR.rds")
 
 

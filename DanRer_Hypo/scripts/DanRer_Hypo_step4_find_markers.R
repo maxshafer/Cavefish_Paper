@@ -10,11 +10,11 @@ setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo")
 
 hypo <- readRDS("DanRer_65k.rds")
 
-############## Subtype Markers ##############
+############## Cluster Markers ##############
 
 # Find Conserved Markers
 
-Idents(hypo) <- "Subtype"
+Idents(hypo) <- "Cluster"
 
 subtype.markers <- lapply(levels(Idents(hypo)), function(x) FindMarkers(hypo, ident.1 = x, verbose = T, max.cells.per.ident = 1000))
 names(subtype.markers) <- levels(Idents(hypo))
@@ -24,9 +24,9 @@ gene.lists <- list()
 gene.lists[[1]] <- subtype.markers
 
 saveRDS(gene.lists, file = "marker_gene_lists.rds")
-print("Done Subtype marker gene lists")
+print("Done Cluster marker gene lists")
 
-############## SubclusterType Markers ##############
+############## Subcluster Markers ##############
 
 ## Find SubcluserType markers
 
@@ -34,7 +34,7 @@ print("Done Subtype marker gene lists")
 
 gene.lists <- readRDS("marker_gene_lists.rds")
 
-Idents(hypo) <- "SubclusterType"
+Idents(hypo) <- "Subcluster"
 
 subcluster.markers <- lapply(levels(Idents(hypo)), function(x) FindMarkers(hypo, ident.1 = x, verbose = T, max.cells.per.ident = 500))
 names(subcluster.markers) <- levels(Idents(hypo))
@@ -42,7 +42,7 @@ names(subcluster.markers) <- levels(Idents(hypo))
 gene.lists[[2]] <- subcluster.markers
 
 saveRDS(gene.lists, file = "marker_gene_lists.rds")
-print("done SubclusterType markers")
+print("done Subcluster markers")
 
 
 

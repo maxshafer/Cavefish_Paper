@@ -10,25 +10,22 @@ setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration
 
 # load objects
 
-hypo.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k.rds")
-hypo.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k.rds")
-hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v3.rds")
+hypo.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k_vR.rds")
+hypo.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k_vR.rds")
+hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
 
 
 ## Add integrated ids to objects
 
-hypo.zeb@meta.data$integrated_Subtype <- hypo.integrated@meta.data$integrated_Subtype[match(row.names(hypo.zeb@meta.data), row.names(hypo.integrated@meta.data))]
-
-hypo.zeb@meta.data$integrated_SubclusterType <- hypo.integrated@meta.data$integrated_SubclusterType[match(row.names(hypo.zeb@meta.data), row.names(hypo.integrated@meta.data))]
-
-hypo.ast@meta.data$integrated_Subtype <- hypo.integrated@meta.data$integrated_Subtype[match(row.names(hypo.ast@meta.data), row.names(hypo.integrated@meta.data))]
-
-hypo.ast@meta.data$integrated_SubclusterType <- hypo.integrated@meta.data$integrated_SubclusterType[match(row.names(hypo.ast@meta.data), row.names(hypo.integrated@meta.data))]
+hypo.zeb@meta.data$integrated_Cluster <- hypo.integrated@meta.data$integrated_Cluster[match(row.names(hypo.zeb@meta.data), row.names(hypo.integrated@meta.data))]
+hypo.zeb@meta.data$integrated_Subcluster <- hypo.integrated@meta.data$integrated_Subcluster[match(row.names(hypo.zeb@meta.data), row.names(hypo.integrated@meta.data))]
+hypo.ast@meta.data$integrated_Cluster <- hypo.integrated@meta.data$integrated_Cluster[match(row.names(hypo.ast@meta.data), row.names(hypo.integrated@meta.data))]
+hypo.ast@meta.data$integrated_Subcluster <- hypo.integrated@meta.data$integrated_Subcluster[match(row.names(hypo.ast@meta.data), row.names(hypo.integrated@meta.data))]
 
 # rm(hypo.integrated)
 
-# saveRDS(hypo.zeb, "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k.rds")
-# saveDS(hypo.ast, "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k.rds")
+saveRDS(hypo.zeb, "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k_vR.rds")
+saveDS(hypo.ast, "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k_vR.rds")
 
 ## Make cave and surface objects, then the list
 
@@ -39,21 +36,21 @@ hypo.surface <- subset(hypo.ast, idents = "astyanax_surface")
 
 hypo.list <- list(hypo.zeb, hypo.ast, hypo.surface, hypo.cave)
 
-# ## To do for each of the 16 zeb samples, add to hypo list, and just run for Subtypes
+# ## To do for each of the 16 zeb samples, add to hypo list, and just run for Clusters
 # 
 # Idents(hypo.zeb) <- "orig.ident"
 # hypo.samples <- lapply(levels(hypo.zeb@meta.data$orig.ident), function(x) subset(hypo.zeb, idents = x))
 # 
-# ## To do for each of the ast samples, add to hypo list, and just run for Subtypes/Types
+# ## To do for each of the ast samples, add to hypo list, and just run for Clusters/Types
 # 
 # Idents(hypo.ast) <- "orig.ident"
 # hypo.samples2 <- lapply(levels(hypo.ast@meta.data$orig.ident), function(x) subset(hypo.ast, idents = x))
 # 
 # hypo.list <- c(hypo.list, hypo.samples, hypo.samples2)
 
-## For each object (zeb, ast, surface, cave), and for each category (Type2, Subtype, SubclusterType), calculate averages and make a matrix (list of lists of matrices)
+## For each object (zeb, ast, surface, cave), and for each category (Type2, Cluster, Subcluster), calculate averages and make a matrix (list of lists of matrices)
 
-categories <- c("Subtype", "SubclusterType", "integrated_Subtype", "integrated_SubclusterType")
+categories <- c("Cluster", "Subcluster", "integrated_Cluster", "integrated_Subcluster")
 
 norm.cluster <- list()
 for(i in 1:length(categories)) {
@@ -74,14 +71,18 @@ for(i in 1:length(categories)) {
 
 names(norm.cluster) <- categories
 
+# Need to cbind the lists, then rename the columns? Is that what the below does?
+
+
 for(i in 1:length(categories)) {
   for (j in 1:length(hypo.list)){
     Idents(hypo.list[[j]]) <- categories[[i]]
   }
-  idents.list <- lapply(hypo.list, function(x) levels(Idents(x))) # this is a list of the Type2 identities for each object, not the categories
+  idents.list <- lapply(hypo.list, function(x) levels(Idents(x)))
   idents.list <- lapply(seq_along(idents.list), function(x) idents.list[[x]][as.vector(table(Idents(hypo.list[[x]]))) > 1])
 
   for(j in 1:length(hypo.list)) {
+    norm.cluster[[i]][[j]] <- Reduce(cbind, norm.cluster[[i]][[j]])
     colnames(norm.cluster[[i]][[j]]) <- idents.list[[j]]
   }
 }

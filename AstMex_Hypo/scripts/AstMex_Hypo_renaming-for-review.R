@@ -65,6 +65,21 @@ index <- index[order(index[,1], index[,3]),]
 
 hypo.ast@meta.data$Subcluster <- factor(hypo.ast@meta.data$Subcluster, levels = index$Subcluster)
 
+# Remove and rename other columns
+hypo.ast@meta.data <- hypo.ast@meta.data[,c(1:8,12:19)]
+colnames(hypo.ast@meta.data) <- c("orig.ident","nCount_RNA","nFeature_RNA","species","sex","RNA_snn_res.0.6","seurat_clusters",
+                                  "RNA_snn_res.0.7","Subcluster_number","species_Cluster","species_Subcluster","morph_Cluster",         
+                                  "morph_Subcluster","morph","Cluster","Subcluster")
+
+# Rename cluster and subcluster ids by morph/species
+hypo.ast@meta.data$morph_Cluster <- paste(hypo.ast@meta.data$Cluster, hypo.ast@meta.data$morph, sep = "_")
+hypo.ast@meta.data$species_Cluster <- paste(hypo.ast@meta.data$Cluster, hypo.ast@meta.data$species, sep = "_")
+hypo.ast@meta.data$morph_Subcluster <- paste(hypo.ast@meta.data$Subcluster , hypo.ast@meta.data$morph, sep = "_")
+hypo.ast@meta.data$species_Subcluster <- paste(hypo.ast@meta.data$Subcluster , hypo.ast@meta.data$species, sep = "_")
+
+# Calcualte UMAP embedding
+hypo.ast <- RunUMAP(object = hypo.ast, reduction = "pca", dims = 1:50, reduction.name = "umap", reduction.key = "umap_", seed.use = 1, check_duplicates = F, min.dist = 0.5)
+
 saveRDS(hypo.ast, file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k_vR.rds")
 
 

@@ -8,10 +8,10 @@ library(viridis)
 
 # Load subsets
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
-hypo.ast <- readRDS("AstMex_63k.rds")
+hypo.ast <- readRDS("AstMex_63k_vR.rds")
 
 # Subset out the blood lineage cells
-Idents(hypo.ast) <- "Subtype"
+Idents(hypo.ast) <- "Cluster"
 immune <- subset(hypo.ast, idents = c("Erythrocytes", "Tcells", "Bcells", "Mast_cells", "Neutrophils", "Macrophages", "Microglia"))
 immune <- FindVariableFeatures(immune, selection.method = "mvp")
 immune <- ScaleData(object = immune, features = VariableFeatures(immune))
@@ -23,12 +23,15 @@ saveRDS(immune, file = "AstMex_immune.rds")
 
 ## Find Markers
 
-cell.types <- unique(immune@meta.data$morph_Subtype)
+cell.types <- unique(immune@meta.data$morph_Cluster)
 cell.types <- cell.types[table(Idents(immune)) > 3]
-Idents(immune) <- "morph_Subtype"
-Idents(immune) <- factor(Idents(immune), levels = levels(immune@meta.data$morph_Subtype))
+Idents(immune) <- "morph_Cluster"
+# Idents(immune) <- factor(Idents(immune), levels = levels(immune@meta.data$morph_Cluster))
 morph_subtype_markers <- FindAllMarkers(immune, max.cells.per.ident = 500, only.pos = T)
 markers <- morph_subtype_markers %>% group_by(cluster) %>% top_n(3, avg_logFC)
+
+
+######### FILTER BY TRINARIZED GENES BEFORE PLOTTING #############
 
 ## Make Plots
 
@@ -37,13 +40,13 @@ cols3 <- c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#1
 
 
 immune.morph <- DimPlot(object = immune, group.by = "species", reduction = "tsne", pt.size = .25, label = FALSE, cols = cols0) + NoAxes() + theme(legend.position = c(0.8,0.9), legend.background = element_blank()) + guides(color = guide_legend(ncol = 1, override.aes = list(size = 2)))
-immune.subtype <- DimPlot(object = immune, group.by = "Subtype", reduction = "tsne", pt.size = .25, label = TRUE) + NoLegend() + NoAxes()
-immune.subcluster <- DimPlot(object = immune, group.by = "SubclusterType", reduction = "tsne", pt.size = .25, label = TRUE) + NoLegend() + NoAxes()
+immune.subtype <- DimPlot(object = immune, group.by = "Cluster", reduction = "tsne", pt.size = .25, label = TRUE) + NoLegend() + NoAxes()
+immune.subcluster <- DimPlot(object = immune, group.by = "Subcluster", reduction = "tsne", pt.size = .25, label = TRUE) + NoLegend() + NoAxes()
 immune.orig <- DimPlot(object = immune, group.by = "orig.ident", reduction = "tsne", pt.size = .25, label = FALSE, cols = cols3) + NoAxes() + theme(legend.position = c(0.8,0.9), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5))) + scale_colour_manual(values = cols3)
 
 ccr9a <- FeaturePlot(immune, features = c("ccr9a"), reduction = "tsne", pt.size = .25) + NoAxes() + ggtitle("")
 
-dot.plot <- DotPlot(immune, features = unique(markers$gene), group.by = "species_Subtype", scale.max = 150) + coord_flip() + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + scale_color_viridis(option = "A")
+dot.plot <- DotPlot(immune, features = unique(markers$gene), group.by = "species_Cluster", scale.max = 150) + coord_flip() + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + scale_color_viridis(option = "A")
 
 # Patchwork them together
 
@@ -70,8 +73,8 @@ tsnes / dot.plot + plot_layout(ncol = 2, widths = c(1.5,1), guides = "collect")
 # pachon.genes <- top.pachon$Gene[top.pachon$Gene %in% row.names(GetAssayData(immune))]
 # surface.genes <- top.surface$Gene[top.surface$Gene %in% row.names(GetAssayData(immune))]
 # 
-# DotPlot(object = immune, features = union(surface.genes, pachon.genes), group.by = "SubclusterType") + RotatedAxis() + NoLegend()
-# DotPlot(object = immune, features = genes, group.by = "Subtype") + RotatedAxis() + NoLegend()
+# DotPlot(object = immune, features = union(surface.genes, pachon.genes), group.by = "Subcluster") + RotatedAxis() + NoLegend()
+# DotPlot(object = immune, features = genes, group.by = "Cluster") + RotatedAxis() + NoLegend()
 # 
 # print(top.pachon, n = 28)
 # print(top.surface, n = 18)

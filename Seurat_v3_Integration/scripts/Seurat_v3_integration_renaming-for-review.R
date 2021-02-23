@@ -46,7 +46,7 @@ new.cluster.ids <- c("Neuronal_00","Neuronal_01","Progenitors","Neuronal_02",
                      "Neuronal_03","Neuronal_04","Neuronal_05","Neuronal_06","Leucocytes",     
                      "Neuronal_07","Microglia","Neuronal_08","Neuronal_09","Macrophages",
                      "Neuronal_10","Oligodendrocytes","OPCs","Endothelial",     
-                     "Neuronal_11","Neuronal_12","Erythrocytes","Cilliated","Lymphatic",
+                     "Neuronal_11","Neuronal_12","Erythrocytes","Ciliated","Lymphatic",
                      "Ependymal","Neuronal_13" )
 
 Idents(hypo.integrated) <- factor(new.cluster.ids[match(Idents(hypo.integrated), current.cluster.ids)], levels = c("Endothelial","Erythrocytes","Ciliated","Ependymal","Progenitors","OPCs","Oligodendrocytes", sort(new.cluster.ids[grep("Neuronal_", new.cluster.ids)]), "Lymphatic","Leucocytes","Macrophages","Microglia"))
@@ -61,6 +61,31 @@ index <- index[order(index[,1], index[,3]),]
 
 hypo.integrated@meta.data$integrated_Subcluster <- factor(hypo.integrated@meta.data$integrated_Subcluster, levels = index$integrated_Subcluster)
 
+# Remove and rename other columns
+hypo.integrated@meta.data <- hypo.integrated@meta.data[,c(1:4,10,17:20,22,24:29)]
+colnames(hypo.integrated@meta.data) <- c("orig.ident","nCount_RNA","nFeature_RNA","sex","species","integrated_snn_res.0.1","integrated_snn_res.0.15","integrated_snn_res.0.2",
+                                         "integrated_snn_res.0.3","species.2","integrated_Subcluster_number","morph","integrated_Cluster_species",
+                                         "integrated_Subcluster_species","integrated_Cluster","integrated_Subcluster")
+
+# Rename cluster and subcluster ids by morph/species
+hypo.integrated@meta.data$integrated_Cluster_species <- paste(hypo.integrated@meta.data$integrated_Cluster, hypo.integrated@meta.data$species.2, sep = "_")
+hypo.integrated@meta.data$integrated_Subcluster_species <- paste(hypo.integrated@meta.data$integrated_Subcluster, hypo.integrated@meta.data$species.2, sep = "_")
+
+# Add independent cluster labels (from DanRer_65k_vR and AstMex_63k_vR) with match
+hypo.zeb <- readRDS(file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k_vR.rds")
+hypo.ast <- readRDS(file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k_vR.rds")
+
+Clusters <- c(as.character(hypo.zeb@meta.data$Cluster), as.character(hypo.ast@meta.data$Cluster))[match(row.names(hypo.integrated@meta.data), c(row.names(hypo.zeb@meta.data), row.names(hypo.ast@meta.data)))]
+Subclusters <- c(as.character(hypo.zeb@meta.data$Subcluster), as.character(hypo.ast@meta.data$Subcluster))[match(row.names(hypo.integrated@meta.data), c(row.names(hypo.zeb@meta.data), row.names(hypo.ast@meta.data)))]
+
+hypo.integrated@meta.data$Cluster <- Clusters
+hypo.integrated@meta.data$Subcluster <- Subclusters
+
+# Calcualte UMAP embedding
+hypo.integrated <- RunUMAP(object = hypo.integrated, reduction = "pca", dims = 1:50, reduction.name = "umap", reduction.key = "umap_", seed.use = 1, check_duplicates = F, min.dist = 0.5)
+
+# Save
 saveRDS(hypo.integrated, file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
+
 
 

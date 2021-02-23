@@ -66,8 +66,12 @@ hypo <- ScaleData(object = hypo, features = VariableFeatures(hypo))
 
 # QC figures and subsetting
 
-VlnPlot(hypo, features = c("nFeature_RNA", "nCount_RNA"), group.by = "orig.ident", ncol = 2)
+hypo[["percent.mt"]] <- PercentageFeatureSet(hypo, pattern = "^mt-")
+
+VlnPlot(hypo, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), group.by = "orig.ident", ncol = 1, pt.size = 0)
 FeatureScatter(hypo, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(hypo, feature1 = "nCount_RNA", feature2 = "percent.mt")
+
 
 hypo <- subset(hypo, subset = nFeature_RNA < 2500)
 

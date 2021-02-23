@@ -1,4 +1,4 @@
-# library(networkD3)
+library(networkD3)
 library(alluvial)
 library(Seurat)
 library(reshape)
@@ -7,12 +7,12 @@ library(ggalluvial)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
-hypo <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v2.rds")
+hypo <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
 
 # Set up data
 
-table1 <- table(hypo@meta.data[hypo@meta.data$species.2 == "astyanax", "Subtype"], hypo@meta.data[hypo@meta.data$species.2 == "astyanax","integrated_Subtype"])
-table2 <- table(hypo@meta.data[hypo@meta.data$species.2 == "zebrafish", "integrated_Subtype"], hypo@meta.data[hypo@meta.data$species.2 == "zebrafish","Subtype"])
+table1 <- table(hypo@meta.data[hypo@meta.data$species.2 == "astyanax", "Cluster"], hypo@meta.data[hypo@meta.data$species.2 == "astyanax","integrated_Cluster"])
+table2 <- table(hypo@meta.data[hypo@meta.data$species.2 == "zebrafish", "integrated_Cluster"], hypo@meta.data[hypo@meta.data$species.2 == "zebrafish","Cluster"])
 
 table1 <- melt(table1)
 table1$Var.1 <- paste("ast", table1$Var.1, sep = "_")

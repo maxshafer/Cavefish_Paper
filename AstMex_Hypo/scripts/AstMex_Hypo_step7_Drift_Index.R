@@ -8,7 +8,7 @@ library(ggpubr)
 # Load subsets
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
-hypo <- readRDS("AstMex_63k.rds")
+hypo <- readRDS("AstMex_63k_vR.rds")
 
 Idents(hypo) <- "species"
 
@@ -35,8 +35,8 @@ saveRDS(gene.lists.pos, file = "marker_gene_lists_pos.rds")
 
 ## Calculate the drift index!
 ## Takes 3 lists of marker genes, conserved, speices.1 and species.2
-## Takes the intersection of all 3 Subtype names, and subset/order lists by that
-## Then run Drift Index caculation for each Subtype
+## Takes the intersection of all 3 Cluster names, and subset/order lists by that
+## Then run Drift Index caculation for each Cluster
 ## Maybe add a part for using a cutoff (p-val, logfc, percent)
 ## Add a part for putting number of genes
 
@@ -62,13 +62,13 @@ calcDriftIndex <- function(conserved = conserved, species.1 = species.1, species
 }
 
 
-## DI Subtypes
-drift.index.Subtypes <- calcDriftIndex(conserved = gene.lists.pos[[1]], species.1 = gene.lists.pos[[2]], species.2 = gene.lists.pos[[3]])
-DI <- tibble(Subtype = c(names(unlist(drift.index.Subtypes))), values = c(unlist(drift.index.Subtypes)))
+## DI Clusters
+drift.index.Clusters <- calcDriftIndex(conserved = gene.lists.pos[[1]], species.1 = gene.lists.pos[[2]], species.2 = gene.lists.pos[[3]])
+DI <- tibble(Cluster = c(names(unlist(drift.index.Clusters))), values = c(unlist(drift.index.Clusters)))
 
-## DI SubclusterType
-drift.index.SubclusterType <- calcDriftIndex(conserved = gene.lists.pos[[4]], species.1 = gene.lists.pos[[5]], species.2 = gene.lists.pos[[6]])
-DI.sub <- tibble(SubclusterType = c(names(unlist(drift.index.SubclusterType))), values = c(unlist(drift.index.SubclusterType)))
+## DI Subcluster
+drift.index.Subcluster <- calcDriftIndex(conserved = gene.lists.pos[[4]], species.1 = gene.lists.pos[[5]], species.2 = gene.lists.pos[[6]])
+DI.sub <- tibble(Subcluster = c(names(unlist(drift.index.Subcluster))), values = c(unlist(drift.index.Subcluster)))
 
 saveRDS(DI, file = "Ast_DI.rds")
 saveRDS(DI.sub, file = "Ast_DI.sub.rds")

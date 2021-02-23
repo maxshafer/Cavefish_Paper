@@ -5,8 +5,11 @@ library(RDAVIDWebService)
 library(org.Dr.eg.db)
 library(reshape2)
 library(data.table)
+library(patchwork)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
+
+hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
 
 ## Functions
 
@@ -36,8 +39,8 @@ hCluster <- function(x = go_analysis, measure.var = "Benj.value", category = "KE
 	return(clustered)
 }
 
-### Make new gene list that is all the subcluster genes, but named by subtype
-gene.lists.pos <- readRDS(file = "drift_gene_lists_pos.rds")
+### Make new gene list that is all the subcluster genes, but named by cluster
+gene.lists.pos <- readRDS(file = "drift_gene_lists_pos_2.rds")
 str(gene.lists.pos, max.level = 1)
 
 ## Subset this list for non-paralogs
@@ -46,30 +49,30 @@ str(gene.lists.pos, max.level = 1)
 
 gene.lists.non.para <- gene.lists.pos
 
-subtypes <- names(gene.lists.pos[[1]])
+clusters <- names(gene.lists.pos[[1]])
 subclusters <- names(gene.lists.pos[[7]])
 
-gene.lists.non.para[[2]] <- lapply(seq_along(subtypes), function(x) {
-  genes.1 <- setdiff(row.names(gene.lists.pos[[2]][[subtypes[x]]]), row.names(gene.lists.pos[[1]][[subtypes[x]]]))
-  genes.2 <- setdiff(row.names(gene.lists.pos[[3]][[subtypes[x]]]), row.names(gene.lists.pos[[1]][[subtypes[x]]]))
-  paralog.con <- union(mart[[1]]$Zebrafish.paralogue.associated.gene.name[match(row.names(gene.lists.pos[[1]][[subtypes[x]]]), mart[[1]]$Gene.name)], mart[[2]]$Cave.fish.paralogue.associated.gene.name[match(row.names(gene.lists.pos[[1]][[subtypes[x]]]), mart[[2]]$Gene.name)])
+gene.lists.non.para[[2]] <- lapply(seq_along(clusters), function(x) {
+  genes.1 <- setdiff(row.names(gene.lists.pos[[2]][[clusters[x]]]), row.names(gene.lists.pos[[1]][[clusters[x]]]))
+  genes.2 <- setdiff(row.names(gene.lists.pos[[3]][[clusters[x]]]), row.names(gene.lists.pos[[1]][[clusters[x]]]))
+  paralog.con <- union(mart[[1]]$Zebrafish.paralogue.associated.gene.name[match(row.names(gene.lists.pos[[1]][[clusters[x]]]), mart[[1]]$Gene.name)], mart[[2]]$Cave.fish.paralogue.associated.gene.name[match(row.names(gene.lists.pos[[1]][[clusters[x]]]), mart[[2]]$Gene.name)])
   paralog.2 <- union(mart[[1]]$Zebrafish.paralogue.associated.gene.name[match(genes.2, mart[[1]]$Gene.name)], mart[[2]]$Cave.fish.paralogue.associated.gene.name[match(genes.2, mart[[2]]$Gene.name)])
   paralog.2 <- union(paralog.con, paralog.2)
   paralog.2 <- paralog.2[paralog.2 %in% mart[[1]]$Gene.name]
-  return(gene.lists.pos[[2]][[subtypes[x]]][genes.1[!(genes.1 %in% paralog.2)],])
+  return(gene.lists.pos[[2]][[clusters[x]]][genes.1[!(genes.1 %in% paralog.2)],])
 })
-gene.lists.non.para[[3]] <- lapply(seq_along(subtypes), function(x) {
-  genes.1 <- setdiff(row.names(gene.lists.pos[[2]][[subtypes[x]]]), row.names(gene.lists.pos[[1]][[subtypes[x]]]))
-  genes.2 <- setdiff(row.names(gene.lists.pos[[3]][[subtypes[x]]]), row.names(gene.lists.pos[[1]][[subtypes[x]]]))
-  paralog.con <- union(mart[[1]]$Zebrafish.paralogue.associated.gene.name[match(row.names(gene.lists.pos[[1]][[subtypes[x]]]), mart[[1]]$Gene.name)], mart[[2]]$Cave.fish.paralogue.associated.gene.name[match(row.names(gene.lists.pos[[1]][[subtypes[x]]]), mart[[2]]$Gene.name)])
+gene.lists.non.para[[3]] <- lapply(seq_along(clusters), function(x) {
+  genes.1 <- setdiff(row.names(gene.lists.pos[[2]][[clusters[x]]]), row.names(gene.lists.pos[[1]][[clusters[x]]]))
+  genes.2 <- setdiff(row.names(gene.lists.pos[[3]][[clusters[x]]]), row.names(gene.lists.pos[[1]][[clusters[x]]]))
+  paralog.con <- union(mart[[1]]$Zebrafish.paralogue.associated.gene.name[match(row.names(gene.lists.pos[[1]][[clusters[x]]]), mart[[1]]$Gene.name)], mart[[2]]$Cave.fish.paralogue.associated.gene.name[match(row.names(gene.lists.pos[[1]][[clusters[x]]]), mart[[2]]$Gene.name)])
   paralog.1 <- union(mart[[1]]$Zebrafish.paralogue.associated.gene.name[match(genes.1, mart[[1]]$Gene.name)], mart[[2]]$Cave.fish.paralogue.associated.gene.name[match(genes.1, mart[[2]]$Gene.name)])
   paralog.1 <- union(paralog.con, paralog.1)
   paralog.1 <- paralog.1[paralog.1 %in% mart[[2]]$Gene.name]
-  return(gene.lists.pos[[3]][[subtypes[x]]][genes.2[!(genes.2 %in% paralog.1)],])
+  return(gene.lists.pos[[3]][[clusters[x]]][genes.2[!(genes.2 %in% paralog.1)],])
 })
 
-names(gene.lists.non.para[[2]]) <- subtypes
-names(gene.lists.non.para[[2]]) <- subtypes
+names(gene.lists.non.para[[2]]) <- clusters
+names(gene.lists.non.para[[2]]) <- clusters
 
 gene.lists.non.para[[8]] <- lapply(seq_along(subclusters), function(x) {
   genes.1 <- setdiff(row.names(gene.lists.pos[[8]][[subclusters[x]]]), row.names(gene.lists.pos[[7]][[subclusters[x]]]))
@@ -93,7 +96,7 @@ gene.lists.non.para[[9]] <- lapply(seq_along(subclusters), function(x) {
 names(gene.lists.non.para[[8]]) <- subclusters
 names(gene.lists.non.para[[9]]) <- subclusters
 
-# for loop, or apply over the names of subtypes, and do this for all three gene.lists.pos[[4:6]]
+# for loop, or apply over the names of clusters, and do this for all three gene.lists.pos[[4:6]]
 test <- lapply(list(7,8,9), function(y) lapply(names(gene.lists.non.para[[1]]), function(x) Reduce(union, lapply(gene.lists.non.para[[y]][grep(x, names(gene.lists.non.para[[y]]))], function(z) row.names(z)))))
 names(test) <- c("conserved.markers.sub.combined", "zebrafish.markers.sub.combined", "astyanax.markers.sub.combined")
 
@@ -139,10 +142,10 @@ annoCharts.2 <- lapply(seq_along(annoCharts), function(x) annoCharts[[x]][unlist
 names(annoCharts.2) <- names(gene.lists.pos[["conserved.markers.sub.combined"]])
 annoCharts.2 <- lapply(annoCharts.2, function(x) splitNames(x))
 
-saveRDS(annoCharts.2, file = "GO_analysis_all.rds")
+saveRDS(annoCharts.2, file = "GO_analysis_all_trinarized.rds")
 
-# # If used subcluster markers, but grouped by subtype
-annoCharts.2 <- readRDS("GO_analysis_all.rds")
+# # If used subcluster markers, but grouped by cluster
+annoCharts.2 <- readRDS("GO_analysis_all_trinarized.rds")
 
 # Reshape for plotting
 measure.vars <- matrix(c("Bonferroni", "Benjamini", "FDR", "Count", "Fold.Enrichment", "X.", "Bonferroni", "Benjamini", "FDR", "Count", "FE", "X.", "Bonf.value", "Benj.value", "FDR.value", "Counts.value", "FoldE.value", "X.value"), nrow=6, ncol = 3)
@@ -167,19 +170,12 @@ go_analysis$L3 <- paste(go_analysis$L1, go_analysis$L2, sep = "_")
 # REACTOME_PATHWAY
 # BBID
 
-go_analysis$L1 <- factor(go_analysis$L1, levels = levels(hypo.integrated@meta.data$integrated_Subtype))
+go_analysis$L1 <- factor(go_analysis$L1, levels = levels(hypo.integrated@meta.data$integrated_Cluster))
 
 go.plot <- ggplot(data = hCluster(x = go_analysis[go_analysis$Benj.value < .05,], measure.var = "Benj.value", category = "KEGG_PATHWAY"), aes(L1, Term, size = Benj.value, fill = FoldE, shape = L2, color = L2)) + geom_point(alpha = 0.75) + scale_shape_manual(values = c(21, 24)) + scale_size_continuous(range = c(6, 2)) + scale_color_manual(values = c("black", "black")) + scale_fill_gradient2(low = "skyblue2", high = "khaki2") + theme_minimal() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 5), axis.text.y = element_text(size = 6), axis.title.x = element_blank(), axis.title.y = element_blank()) + coord_flip()
 
 dev.new()
 go.plot + plot_layout(width = unit(90, "mm"), height = unit(90, "mm"))
-
-### Save annoCharts for later, even though they don't show much!
-
-anno.list <- readRDS("GO_analysis_all.rds")
-
-annoCharts.2 <- anno.list[1:26]
-annoCharts.sub.2 <- anno.list[27:189]
 
 
 

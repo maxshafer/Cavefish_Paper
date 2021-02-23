@@ -16,7 +16,7 @@ setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration
 
 # load objects
 
-hypo <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v3.rds")
+hypo <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
 
 cols3 <- c("#FDE725FF", "#22A884FF", "#414487FF")
 
@@ -36,27 +36,27 @@ orders <- unlist(lapply(dendrograms[[1]], function(x) labels(x)))
 
 # Proportion figures for sex and orig.ident
 # Make tables of cell type proportions
-# Need to make matrix, for Subtype x Subcluster # (and fill in blanks, in reverse)
+# Need to make matrix, for Cluster x Subcluster # (and fill in blanks, in reverse)
 
 # 3 colours
-prop.table <- table(hypo@meta.data$integrated_SubclusterType, hypo@meta.data$species.2)
+prop.table <- table(hypo@meta.data$integrated_Subcluster, hypo@meta.data$species.2)
 prop.table <- prop.table/colSums(prop.table)
 
 prop.table <- as.data.frame(t(apply(prop.table, 1, function(y) {y/sum(y)})))
 
 prop.table$cell_type <- row.names(prop.table)
-index <- unique(hypo@meta.data[, c("integrated_SubclusterType", "integrated_Subtype")])
-prop.table$Subtype <- index[match(prop.table$cell_type, index[,1]), 2]
-prop.table <- prop.table[!(is.na(prop.table$Subtype)),]
+index <- unique(hypo@meta.data[, c("integrated_Subcluster", "integrated_Cluster")])
+prop.table$Cluster <- index[match(prop.table$cell_type, index[,1]), 2]
+prop.table <- prop.table[!(is.na(prop.table$Cluster)),]
 
-index <- unique(hypo@meta.data[, c("integrated_SubclusterType", "integrated_SubclusterType_number")])
+index <- unique(hypo@meta.data[, c("integrated_Subcluster", "integrated_Subcluster_number")])
 prop.table$res.0.4 <- index[match(prop.table$cell_type, index[,1]), 2]
 
 # prop.table$colour <- rgb(1-prop.table$astyanax_cave, 1-prop.table$astyanax_surface, 0, 1)
 
 # prop.table <- prop.table[,c(5,1,2,3,4)]
 prop.table <- melt(prop.table)
-prop.table <- prop.table[order(match(prop.table$Subtype, orders)),]
+prop.table <- prop.table[order(match(prop.table$Cluster, orders)),]
 prop.table$cell_type <- factor(prop.table$cell_type, levels = rev(unique(prop.table$cell_type)))
 
 ## Do it myself, without the ggtree wrapper - MUCH BETTER
@@ -65,7 +65,7 @@ df <- dendro.plot$data
 width = 3
 
 prop.table.filt <- prop.table[prop.table$variable == "zebrafish",]
-prop.table.filt$y <- df$y[match(prop.table.filt$Subtype, df$label)]
+prop.table.filt$y <- df$y[match(prop.table.filt$Cluster, df$label)]
 prop.table.filt$col <- ifelse(prop.table.filt$value < 0.1 | prop.table.filt$value > 0.9, 1, 0)
 prop.table.filt$size <- ifelse(prop.table.filt$value < 0.1 | prop.table.filt$value > 0.9, 0, 1)
 prop.table.filt$x <- max(df$x) + 3 + as.numeric(prop.table.filt$res.0.4) * width
@@ -78,8 +78,8 @@ p.2 <- dendro.plot + geom_tile(data = prop.table.filt, aes(x, y, fill = value), 
 
 mapping <- data.frame(label = prop.table.filt$res.0.4, x = prop.table.filt$x)
 mapping$y <- prop.table.filt$y
-mapping2 <- unique(data.frame(label = prop.table.filt$Subtype, y = prop.table.filt$y))
-mapping2$x <- apply(mapping2, 1, function(y) max(prop.table.filt$x[prop.table.filt$Subtype == y[1]]) + 5)
+mapping2 <- unique(data.frame(label = prop.table.filt$Cluster, y = prop.table.filt$y))
+mapping2$x <- apply(mapping2, 1, function(y) max(prop.table.filt$x[prop.table.filt$Cluster == y[1]]) + 5)
 mapping2$hjust <- 0
 mapping2$hjust[mapping2$y %in% c(1:13)] <- 1
 mapping2$angle <- apply(mapping2, 1, function(x) max(dendro.plot$data$angle[dendro.plot$data$label == x[1]], na.rm = T))
