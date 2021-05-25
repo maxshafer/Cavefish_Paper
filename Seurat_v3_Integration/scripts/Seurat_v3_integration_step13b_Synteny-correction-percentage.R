@@ -3,6 +3,10 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 
+## This script identifies how many of the species-specific, conserved, as well as species-specific marker genes that are paralogs, which are
+## also corrected by the synteny correction in the SCORPiOS paper
+
+setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
 # Load ense89 mart orthologs
 
@@ -76,17 +80,23 @@ saveRDS(orthologs.list, "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seu
 
 ## test whether zeb or ast paralogs are in the list
 
-zeb <- lapply(gene.lists.para$zebrafish.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.3$Zebrafish.gene.name])
-zeb.all <- lapply(gene.lists.para$zebrafish.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.2$Zebrafish.gene.name])
+a = 1.5
+b = 2
+f = 0.1
 
-ast <- lapply(gene.lists.para$astyanax.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.3$Cave.fish.gene.name])
-ast.all <- lapply(gene.lists.para$astyanax.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.2$Cave.fish.gene.name])
+gene.lists.pos <- readRDS(paste("drift_gene_lists_pos_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
+
+zeb <- lapply(gene.lists.para$subcluster.zebrafish, function(x) row.names(x)[row.names(x) %in% orthologs.3$Zebrafish.gene.name])
+zeb.all <- lapply(gene.lists.para$subcluster.zebrafish, function(x) row.names(x)[row.names(x) %in% orthologs.2$Zebrafish.gene.name])
+
+ast <- lapply(gene.lists.para$subcluster.astyanax, function(x) row.names(x)[row.names(x) %in% orthologs.3$Cave.fish.gene.name])
+ast.all <- lapply(gene.lists.para$subcluster.astyanax, function(x) row.names(x)[row.names(x) %in% orthologs.2$Cave.fish.gene.name])
 
 
-test.df <- data.frame(zeb.para = unlist(lapply(gene.lists.para$zebrafish.markers.sub, function(x) length(x))), 
+test.df <- data.frame(zeb.para = unlist(lapply(gene.lists.para$subcluster.zebrafish, function(x) length(x))), 
                       zeb.all = unlist(lapply(zeb.all, function(x) length(x))),
                       zeb.corr = unlist(lapply(zeb, function(x) length(x))), 
-                      ast.para = unlist(lapply(gene.lists.para$astyanax.markers.sub, function(x) length(x))),
+                      ast.para = unlist(lapply(gene.lists.para$subcluster.astyanax, function(x) length(x))),
                       ast.all = unlist(lapply(ast.all, function(x) length(x))),
                       ast.corr = unlist(lapply(ast, function(x) length(x))))
 
@@ -96,19 +106,19 @@ test.df$ast.percent <- test.df$ast.corr/test.df$ast.all
 
 ## Test whether zeb or ast markers are in the list
 
-zeb <- lapply(gene.lists.pos$zebrafish.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.3$Zebrafish.gene.name])
-zeb.all <- lapply(gene.lists.pos$zebrafish.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.2$Zebrafish.gene.name])
+zeb <- lapply(gene.lists.pos$subcluster.zebrafish, function(x) row.names(x)[row.names(x) %in% orthologs.3$Zebrafish.gene.name])
+zeb.all <- lapply(gene.lists.pos$subcluster.zebrafish, function(x) row.names(x)[row.names(x) %in% orthologs.2$Zebrafish.gene.name])
 
-ast <- lapply(gene.lists.pos$astyanax.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.3$Cave.fish.gene.name])
-ast.all <- lapply(gene.lists.pos$astyanax.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.2$Cave.fish.gene.name])
+ast <- lapply(gene.lists.pos$subcluster.astyanax, function(x) row.names(x)[row.names(x) %in% orthologs.3$Cave.fish.gene.name])
+ast.all <- lapply(gene.lists.pos$subcluster.astyanax, function(x) row.names(x)[row.names(x) %in% orthologs.2$Cave.fish.gene.name])
 
-con <- lapply(gene.lists.pos$conserved.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.3$Cave.fish.gene.name])
-con.all <- lapply(gene.lists.pos$conserved.markers.sub, function(x) row.names(x)[row.names(x) %in% orthologs.2$Cave.fish.gene.name])
+con <- lapply(gene.lists.pos$subcluster.conserved, function(x) row.names(x)[row.names(x) %in% orthologs.3$Cave.fish.gene.name])
+con.all <- lapply(gene.lists.pos$subcluster.conserved, function(x) row.names(x)[row.names(x) %in% orthologs.2$Cave.fish.gene.name])
 
-test.df.2 <- data.frame(zeb.para = unlist(lapply(gene.lists.pos$zebrafish.markers.sub, function(x) length(x))), 
+test.df.2 <- data.frame(zeb.para = unlist(lapply(gene.lists.pos$subcluster.zebrafish, function(x) length(x))), 
                       zeb.all = unlist(lapply(zeb.all, function(x) length(x))),
                       zeb.corr = unlist(lapply(zeb, function(x) length(x))), 
-                      ast.para = unlist(lapply(gene.lists.pos$astyanax.markers.sub, function(x) length(x))),
+                      ast.para = unlist(lapply(gene.lists.pos$subcluster.astyanax, function(x) length(x))),
                       ast.all = unlist(lapply(ast.all, function(x) length(x))),
                       ast.corr = unlist(lapply(ast, function(x) length(x))),
                       con.all = unlist(lapply(con.all, function(x) length(x))),
@@ -120,7 +130,7 @@ test.df.2$con.percent <- test.df.2$con.corr/test.df.2$con.all
 
 
 data.frame <- data.frame(con.markers = test.df.2$con.percent, zeb.markers = test.df.2$zeb.percent, ast.markers = test.df.2$ast.percent, zeb.para.markers = test.df$zeb.percent, ast.para.markers = test.df$ast.percent)
-data.frame$subtype <- names(gene.lists.pos$conserved.markers.sub)
+data.frame$subtype <- names(gene.lists.pos$subcluster.conserved)
 
-saveRDS(data.frame, file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/synteny-corrected-percentage.rds")
+saveRDS(data.frame, file = paste("synteny-corrected-percentage_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
 

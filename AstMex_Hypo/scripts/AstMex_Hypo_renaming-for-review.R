@@ -50,10 +50,10 @@ new.cluster.ids <- c("Neuronal_00","Neuronal_01","Neuronal_02","Progenitors_1",
                      "Neuronal_07", "Neuronal_08", "Neuronal_09", "Neuronal_10", "Neuronal_11", 
                      "Erythrocytes", "Ciliated", "Neuronal_12", 
                      "Neuronal_13", "Neuronal_14", "OPCs", "Neuronal_15", "Neuronal_16", "Progenitors_2", 
-                     "Mast_cells", "Ependymal", "Lymphatic", "Neuronal_17", "Endothelial", 
+                     "Mast_cells", "Ependyma_cells", "Lymphatic", "Neuronal_17", "Endothelial", 
                      "Neuronal_18", "Neuronal_19", "Neutrophils", "Oligodendrocytes_2")
 
-Idents(hypo.ast) <- factor(new.cluster.ids[match(Idents(hypo.ast), current.cluster.ids)], levels = c("Endothelial","Erythrocytes","Ciliated","Ependymal","Progenitors_1","Progenitors_2","OPCs","Oligodendrocytes_1", "Oligodendrocytes_2", sort(new.cluster.ids[grep("Neuronal_", new.cluster.ids)]), "Lymphatic","Tcells", "Bcells", "Mast_cells","Neutrophi","Macrophages","Microglia"))
+Idents(hypo.ast) <- factor(new.cluster.ids[match(Idents(hypo.ast), current.cluster.ids)], levels = c("Endothelial","Erythrocytes","Ciliated","Ependyma_cells","Progenitors_1","Progenitors_2","OPCs","Oligodendrocytes_1", "Oligodendrocytes_2", sort(new.cluster.ids[grep("Neuronal_", new.cluster.ids)]), "Lymphatic","Tcells", "Bcells", "Mast_cells","Neutrophils","Macrophages","Microglia"))
 hypo.ast$Cluster <- Idents(hypo.ast)
 
 hypo.ast@meta.data$Subcluster <- paste(hypo.ast@meta.data$Cluster, hypo.ast@meta.data$SubclusterType_number, sep = "_")

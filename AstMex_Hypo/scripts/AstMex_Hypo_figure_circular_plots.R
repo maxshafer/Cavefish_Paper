@@ -9,7 +9,7 @@ library(ggplot2)
 # Load subsets
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo")
 
-hypo <- readRDS("AstMex_63k.rds")
+hypo <- readRDS("AstMex_63k_vR.rds")
 
 
 #### DF for # of DE genes
@@ -26,27 +26,27 @@ gene.lists.pos.surface.sub <- lapply(seq_along(gene.lists.pos[[4]]), function(x)
 
 #### Proportion tables for morph and cave
 
-prop.table.morph <- table(hypo@meta.data$SubclusterType, hypo@meta.data$species)
+prop.table.morph <- table(hypo@meta.data$Subcluster, hypo@meta.data$species)
 prop.table.morph <- as.data.frame(t(apply(prop.table.morph, 1, function(y) {y/sum(y)})))
 prop.table.morph$cell_type <- row.names(prop.table.morph)
 prop.table.morph <- reshape2::melt(prop.table.morph)
 prop.table.morph$cell_type <- as.factor(prop.table.morph$cell_type)
-prop.table.morph$cell_type <- factor(prop.table.morph$cell_type, levels = levels(hypo@meta.data$SubclusterType))
+prop.table.morph$cell_type <- factor(prop.table.morph$cell_type, levels = levels(hypo@meta.data$Subcluster))
 
-prop.table.cave <- table(hypo@meta.data$SubclusterType, hypo@meta.data$morph)
+prop.table.cave <- table(hypo@meta.data$Subcluster, hypo@meta.data$morph)
 prop.table.cave <- prop.table.cave[,2:4]
 prop.table.cave <- as.data.frame(t(apply(prop.table.cave, 1, function(y) {y/sum(y)})))
 prop.table.cave$cell_type <- row.names(prop.table.cave)
 prop.table.cave <- reshape2::melt(prop.table.cave)
 prop.table.cave$cell_type <- as.factor(prop.table.cave$cell_type)
-prop.table.cave$cell_type <- factor(prop.table.cave$cell_type, levels = levels(hypo@meta.data$SubclusterType))
+prop.table.cave$cell_type <- factor(prop.table.cave$cell_type, levels = levels(hypo@meta.data$Subcluster))
 
 
 #### DF for the Dissimilarity from the dendrogram - dendrogram distance
 
 dendrograms <- readRDS("Ast_dendrograms.rds")
 
-# phylo <- cophenetic.phylo(as.phylo(dendrograms[["species_SubclusterType"]]))
+# phylo <- cophenetic.phylo(as.phylo(dendrograms[["species_Subcluster"]]))
 
 phylo <- as.data.frame(cophenetic.phylo(as.phylo(dendrograms[[4]]))) # this is missing species-specific subclusters
 phylo <- as.matrix(phylo)
@@ -55,8 +55,8 @@ phylo <- as.matrix(phylo)
 
 test1 <- row.names(phylo)[grep("surface", row.names(phylo))]
 test2 <- colnames(phylo)[grep("cave", colnames(phylo))]
-test1.sub <- as.character(hypo@meta.data$SubclusterType[match(test1, hypo@meta.data$species_SubclusterType)])
-test2.sub <- as.character(hypo@meta.data$SubclusterType[match(test2, hypo@meta.data$species_SubclusterType)])
+test1.sub <- as.character(hypo@meta.data$Subcluster[match(test1, hypo@meta.data$species_Subcluster)])
+test2.sub <- as.character(hypo@meta.data$Subcluster[match(test2, hypo@meta.data$species_Subcluster)])
 test3 <- intersect(test1.sub, test2.sub)
 test1.index <- match(test3, test1.sub)
 test2.index <- match(test3, test2.sub)
@@ -66,22 +66,27 @@ test2 <- test2[test2.index]
 phylo <- phylo[test1, test2]
 phylo <- as.matrix(phylo)
 phylo.dist <- data.frame(cell_type = test1.sub[test1.index], phylo.dist = diag(phylo))
-phylo.dist <- rbind(phylo.dist, data.frame(cell_type = levels(hypo@meta.data$SubclusterType)[!(levels(hypo@meta.data$SubclusterType) %in% phylo.dist$cell_type)], phylo.dist = 0))
-phylo.dist$cell_type <- factor(phylo.dist$cell_type, levels = levels(hypo@meta.data$SubclusterType))
+phylo.dist <- rbind(phylo.dist, data.frame(cell_type = levels(hypo@meta.data$Subcluster)[!(levels(hypo@meta.data$Subcluster) %in% phylo.dist$cell_type)], phylo.dist = 0))
+phylo.dist$cell_type <- factor(phylo.dist$cell_type, levels = levels(hypo@meta.data$Subcluster))
 phylo.dist$group2 <- "all"
+phylo.dist$group <- hypo@meta.data$Cluster[match(phylo.dist$cell_type, hypo@meta.data$Subcluster)]
+
+
+
 
 #### Drift Index
 
 DI.sub <- readRDS(file = "Ast_DI.sub.rds")
 
 DI.sub$group <- "all"
-df <- data.frame(SubclusterType = levels(hypo@meta.data$SubclusterType)[!(levels(hypo@meta.data$SubclusterType) %in% DI.sub$SubclusterType)], values = NA, group = "all")
-df$Subtype <- hypo@meta.data$Subtype[match(df$SubclusterType, hypo@meta.data$SubclusterType)]
+DI.sub$Cluster <- hypo@meta.data$Cluster[match(DI.sub$Subcluster, hypo@meta.data$Subcluster)]
+df <- data.frame(Subcluster = levels(hypo@meta.data$Subcluster)[!(levels(hypo@meta.data$Subcluster) %in% DI.sub$Subcluster)], values = NA, group = "all")
+df$Cluster <- hypo@meta.data$Cluster[match(df$Subcluster, hypo@meta.data$Subcluster)]
 DI.sub <- rbind(DI.sub, df)
-colnames(DI.sub) <- c("cell_type", "DI", "group", "group2")
+colnames(DI.sub) <- c("cell_type", "DI", "group2", "group")
 
 ## Need to change the x factor levels for combined.2 and label_data
-DI.sub$cell_type <- factor(DI.sub$cell_type, levels = levels(hypo@meta.data$SubclusterType))
+DI.sub$cell_type <- factor(DI.sub$cell_type, levels = levels(hypo@meta.data$Subcluster))
 
 
 
@@ -96,14 +101,14 @@ DI.sub$cell_type <- factor(DI.sub$cell_type, levels = levels(hypo@meta.data$Subc
 weir.genes <- readRDS(file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/astyanax_variants/weir.genes.rds")
 snp.genes <- Reduce(union, lapply(weir.genes, function(x) x$gene_name))
 
-combined.markers <- lapply(names(gene.lists.pos$conserved.markers.sub), function(x) unlist(Reduce(union, list(row.names(gene.lists.pos$conserved.markers.sub[[x]]), row.names(gene.lists.pos$cave.markers.sub[[x]]), row.names(gene.lists.pos$surface.markers.sub[[x]])))))
-snp.markers <- lapply(seq_along(gene.lists.pos$conserved.markers.sub), function(x) snp.genes[snp.genes %in% combined.markers[[x]]])
+combined.markers <- lapply(names(gene.lists.pos$subcluster.conserved), function(x) unlist(Reduce(union, list(row.names(gene.lists.pos$subcluster.conserved[[x]]), row.names(gene.lists.pos$subcluster.cave[[x]]), row.names(gene.lists.pos$subcluster.surface[[x]])))))
+snp.markers <- lapply(seq_along(gene.lists.pos$subcluster.conserved), function(x) snp.genes[snp.genes %in% combined.markers[[x]]])
 per.snp.markers <- unlist(lapply(snp.markers, function(x) length(x)))/unlist(lapply(combined.markers, function(x) length(x)))
-per.snp.markers <- data.frame(cell_type = names(gene.lists.pos$conserved.markers.sub), per.snp = per.snp.markers*100, group = hypo@meta.data$Subtype[match(names(gene.lists.pos$conserved.markers.sub), hypo@meta.data$SubclusterType)], group2 = "all")
+per.snp.markers <- data.frame(cell_type = names(gene.lists.pos$subcluster.conserved), per.snp = per.snp.markers*100, group = hypo@meta.data$Cluster[match(names(gene.lists.pos$subcluster.conserved), hypo@meta.data$Subcluster)], group2 = "all")
 
 # Change factor levels
-per.snp.markers$group <- factor(per.snp.markers$group, levels = levels(hypo@meta.data$Subtype))
-per.snp.markers$cell_type <- factor(per.snp.markers$cell_type, levels = levels(hypo@meta.data$SubclusterType))
+per.snp.markers$group <- factor(per.snp.markers$group, levels = levels(hypo@meta.data$Cluster))
+per.snp.markers$cell_type <- factor(per.snp.markers$cell_type, levels = levels(hypo@meta.data$Subcluster))
 
 
 
@@ -113,7 +118,7 @@ per.snp.markers$cell_type <- factor(per.snp.markers$cell_type, levels = levels(h
 
 #### Label circle plot
 
-label_data <- data.frame(cell_type = levels(hypo@meta.data$SubclusterType), tot = 1, x = seq(1:length(levels(hypo@meta.data$SubclusterType))), angle = 90, hjust = 1, group = hypo@meta.data$Subtype[match(levels(hypo@meta.data$SubclusterType), hypo@meta.data$SubclusterType)])
+label_data <- data.frame(cell_type = levels(hypo@meta.data$Subcluster), tot = 1, x = seq(1:length(levels(hypo@meta.data$Subcluster))), angle = 90, hjust = 1, group = hypo@meta.data$Cluster[match(levels(hypo@meta.data$Subcluster), hypo@meta.data$Subcluster)])
 label_data$cell_type <- factor(label_data$cell_type, levels = levels(prop.table.morph$cell_type))
 
 label_data$x2 <- apply(label_data, 1, function(x) mean(label_data$x[label_data$group == x[6]]))
@@ -128,14 +133,14 @@ label_data$angle2 <- ifelse(label_data$angle2 < -90, label_data$angle2+180, labe
 
 ## Combined all data into one df
 
-# DI.sub$group <- hypo@meta.data$Subtype[match(DI.sub$cell_type, hypo@meta.data$SubclusterType)]
+# DI.sub$group <- hypo@meta.data$Cluster[match(DI.sub$cell_type, hypo@meta.data$Subcluster)]
 
 combined <- merge(merge(merge(label_data, DI.sub, sort = F), phylo.dist, sort = F), per.snp.markers, sort = F)
 #combined$phylo.dist <- combined$phylo.dist
 combined$cell_type <- factor(combined$cell_type, levels = levels(label_data$cell_type))
 combined$x <- as.numeric(combined$cell_type)
 
-# The issue is that for Subtypes with only 1 subcluster, it cannot make an area under the plot - can we pad them for x +0.5, x -0.5?
+# The issue is that for Clusters with only 1 subcluster, it cannot make an area under the plot - can we pad them for x +0.5, x -0.5?
 # hmmm, dunno if that will work, or look wonky
 # could find the first and last entry, then add another entry x + 0.5, and x - 0.5 that is the same
 
@@ -167,7 +172,7 @@ combined <- rbind(combined, data.frame(cell_type = paste("Label", x = c(1:10), s
 
 
 # Plot the circle plots
-# For SubclusterTypes
+# For Subclusters
 
 # line.plots <- ggplot(combined, aes(x = x, group = group)) + geom_ribbon(aes(ymin = 0, ymax = de.num, fill = group), alpha = 0.3) + geom_line(data = combined.2, aes(x = x, y = de.num, group = group2), colour = "red") + geom_ribbon(aes(ymin = 0, ymax = phylo.dist, fill = group), alpha = 0.3) + geom_line(data = combined.2, aes(x = x, y = phylo.dist, group = group2), colour = "black") + coord_polar() + ylim(-5000,1615) + theme(text = element_blank(), line = element_blank(), panel.background = element_rect(fill = "transparent", color = NA), plot.background = element_rect(fill = "transparent", color = NA)) + guides(fill = F, colour = F) + geom_hline(yintercept = 500, color = "grey75", size = 1, linetype = "dashed")
 

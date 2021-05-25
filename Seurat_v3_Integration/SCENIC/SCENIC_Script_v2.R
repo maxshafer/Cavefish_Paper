@@ -47,7 +47,7 @@ if (args[[2]] == "behavior") {
 
 ## Prepare gene lists for Targets and TFs
 GO_list <- as.character(unique(GO_list$V2))
-TF_list <- read.csv("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/SCENIC/GO_DNA_binding.csv", head = F)
+TF_list <- read.csv("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/SCENIC/GO_TF_list.csv", head = F)
 TF_list <- as.character(unique(TF_list$V2))
 
 ## load functions
@@ -60,13 +60,13 @@ if (args[[4]] != 1) {
 	setwd(paste("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/SCENIC", args[[1]], args[[2]], sep = "/"))
 	
 	if (args[[1]] == "drerio") {
-	  hypo.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k.rds")
+	  hypo.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/SCENIC/DanRer_65k_vSCENIC.rds")
 		exprMat <- as.matrix(GetAssayData(hypo.zeb))
 		rm(hypo.zeb)
 	}
 
 	if (args[[1]] == "amexicanus") {
-	  hypo.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k.rds")
+	  hypo.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/SCENIC/AstMex_63k_vSCENIC.rds")
 		exprMat <- as.matrix(GetAssayData(hypo.ast))
 		rm(hypo.ast)
 	}
@@ -126,7 +126,7 @@ setwd(args[[2]])
 # Load scenicOptions and other files from previous run, and save to newly directory
 
 if (args[[1]] == "drerio") {
-  hypo.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k.rds")
+  hypo.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/SCENIC/DanRer_65k_vSCENIC.rds")
 	exprMat <- as.matrix(GetAssayData(hypo.zeb))
 	cellInfo <- data.frame(hypo.zeb@meta.data)
 	saveRDS(cellInfo, file="int/cellInfo.Rds")
@@ -163,7 +163,7 @@ if (args[[1]] == "drerio") {
 }
 
 if (args[[1]] == "amexicanus") {
-  hypo.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k.rds")
+  hypo.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/SCENIC/AstMex_63k_vSCENIC.rds")
 	exprMat <- as.matrix(GetAssayData(hypo.ast))
 	cellInfo <- data.frame(hypo.ast@meta.data)
 	saveRDS(cellInfo, file="int/cellInfo.Rds")

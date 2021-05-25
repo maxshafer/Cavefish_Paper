@@ -1,0 +1,29 @@
+/astyanax_variants/Archive/
+/astyanax_variants/FST
+/astyanax_variants/*.gtf
+/astyanax_variants/*.gtf.gz
+/astyanax_variants/cluster_scripts/scripts/logs/
+/astyanax_variants/cluster_scripts/scripts/archive/
+/Supplemental_data/
+/Seurat_v3_Integration/SCENIC copy/
+/Seurat_v3_Integration/SCENIC copy 2/
+/Seurat_v3_Integration/unused_scripts/
+/Seurat_v3_Integration/Figures/
+/Seurat_v3_Integration/*.txt
+/AstMex_Hypo/Figures/
+/AstMex_Hypo/SCENIC copy/
+/AstMex_Hypo/unused_scripts/
+/AstMex_Hypo/raw_data/
+/AstMex_Hypo/*.txt
+/DanRer_Hypo/Figures/
+/DanRer_Hypo/unused_scripts/
+/DanRer_Hypo/raw_data/
+/DanRer_Hypo/*.txt
+/Ensembl_93_paralogs/
+Ensembl_93_paralogs.zip
+Supplemental_data.zip
+*.Robj
+*.rds
+*.png
+*.pdf
+*.feather

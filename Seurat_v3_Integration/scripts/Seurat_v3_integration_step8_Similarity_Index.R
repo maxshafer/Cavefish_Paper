@@ -1,6 +1,7 @@
 library(dplyr)
 library(tidyr)
 library(Seurat)
+library(tictoc)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
@@ -9,59 +10,11 @@ Idents(hypo.integrated) <- "species.2"
 hypo.integrated.zeb <- subset(hypo.integrated, idents = "zebrafish")
 hypo.integrated.ast <- subset(hypo.integrated, idents = "astyanax")
 
-## Load marker gene lists
-
-gene.lists <- readRDS(file = "drift_gene_lists_2.rds")
-
-## Take only positive markers
-
-gene.lists.pos <- list()
-gene.lists.pos[c(1,4,7,12)] <- lapply(gene.lists[c(1,4,7,12)], function(x) lapply(seq_along(x), function(y) x[[y]][x[[y]][,2] > 0 & x[[y]][,6] > 0,])) # These elements are from FindConservedMarkers and have different columns
-gene.lists.pos[c(2,3,5,6,8,9,10,11,13,14)] <- lapply(gene.lists[c(2,3,5,6,8,9,10,11,13,14)], function(x) lapply(seq_along(x), function(y) x[[y]][x[[y]]$avg_logFC > 0,]))
-
-names(gene.lists.pos) <- names(gene.lists)
-
-for(i in 1:length(gene.lists.pos)){
-	names(gene.lists.pos[[i]]) <- names(gene.lists[[i]])
-}
-
-## Subset gene lists by trinarized genes
+## Load trinarized filtered marker gene lists
 
 a = 1.5
 b = 2
 f = 0.1
-trinarized.exp <- readRDS(file = paste("trinarized_expression_a",a,"_b",b, "_f",f,"_cutoff.rds", sep = ""))
-
-## If I change the names of trinarized.exp to match gene.lists.pos (easier to keep rest of script)
-## then I can lapply along the trinarized list names, and do another imbedded lapply like below (seeking along cluster IDs)
-## Currently doesn't work until I rerun find markers (or rename clusters) - should update names, so I don't have to change this
-
-names <- names(trinarized.exp)
-
-## This now works
-
-gene.lists.pos.2 <- lapply(names, function(y) lapply(names(trinarized.exp[[y]]), function(x) gene.lists.pos[[y]][[x]][rownames(gene.lists.pos[[y]][[x]]) %in% names(trinarized.exp[[y]][[x]]),]))
-names(gene.lists.pos.2) <- names(trinarized.exp)
-
-for(i in names){
-  names(gene.lists.pos.2[[i]]) <- names(trinarized.exp[[i]])
-}
-
-gene.lists.pos.2$cluster.conserved <- lapply( names(gene.lists.pos$cluster.conserved), function(x) gene.lists.pos$cluster.conserved[[x]][rownames(gene.lists.pos$cluster.conserved[[x]]) %in% c(rownames(gene.lists.pos.2$cluster.zebrafish[[x]]), rownames(gene.lists.pos.2$cluster.astyanax[[x]])),] )
-names(gene.lists.pos.2$cluster.conserved) <- names(gene.lists.pos.2$cluster.astyanax)
-
-gene.lists.pos.2$cluster.conserved.ast <- lapply( names(gene.lists.pos$cluster.conserved.ast), function(x) gene.lists.pos$cluster.conserved.ast[[x]][rownames(gene.lists.pos$cluster.conserved.ast[[x]]) %in% c(rownames(gene.lists.pos.2$cluster.surface[[x]]), rownames(gene.lists.pos.2$cluster.cave[[x]])),] )
-names(gene.lists.pos.2$cluster.conserved.ast) <- names(gene.lists.pos.2$cluster.cave)
-
-gene.lists.pos.2$subcluster.conserved <- lapply( names(gene.lists.pos$subcluster.conserved), function(x) gene.lists.pos$subcluster.conserved[[x]][rownames(gene.lists.pos$subcluster.conserved[[x]]) %in% c(rownames(gene.lists.pos.2$subcluster.zebrafish[[x]]), rownames(gene.lists.pos.2$subcluster.astyanax[[x]])),] )
-names(gene.lists.pos.2$subcluster.conserved) <- names(gene.lists.pos.2$subcluster.astyanax)
-
-gene.lists.pos.2$subcluster.conserved.ast <- lapply( names(gene.lists.pos$subcluster.conserved.ast), function(x) gene.lists.pos$subcluster.conserved.ast[[x]][rownames(gene.lists.pos$subcluster.conserved.ast[[x]]) %in% c(rownames(gene.lists.pos.2$subcluster.surface[[x]]), rownames(gene.lists.pos.2$subcluster.cave[[x]])),] )
-names(gene.lists.pos.2$subcluster.conserved.ast) <- names(gene.lists.pos.2$subcluster.cave)
-
-gene.lists.pos.2 <- gene.lists.pos.2[names(gene.lists.pos)]
-
-saveRDS(gene.lists.pos.2, file = paste("drift_gene_lists_pos_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
 
 gene.lists.pos <- readRDS(paste("drift_gene_lists_pos_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
 
@@ -123,22 +76,30 @@ go_lists <- lapply(paste("../Seurat_v3_Integration/SCENIC/", go_lists, sep = "")
 go_lists <- lapply(go_lists, function(x) unique(x$V2))
 names(go_lists) <- list.files("../Seurat_v3_Integration/SCENIC")[grep("GO", list.files("../Seurat_v3_Integration/SCENIC"))]
 names(go_lists)
-go_lists[[13]] <- Reduce(union, list(go_lists[[5]], go_lists[[6]], go_lists[[9]]))
+go_lists[[14]] <- Reduce(union, list(go_lists[["GO_dopamine.csv"]], go_lists[["GO_epinephrine.csv"]], go_lists[["GO_GABA.csv"]], go_lists[["GO_glutamine.csv"]], go_lists[["GO_neuropeptide.csv"]]))
 
-## Plot Cluster
+## Caculate SI for various sets of genes (TFs, NPs, NTs)
+## Should probably do this as a 'corrected' SI, will show that the paralogs don't contribute to TF divergence
+## Then decide if 'all' should be all genes, or non-TF genes (invert)
 
-SI2 <- data.frame(cell_type = c(names(gene.lists.pos$subcluster.conserved)), all = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, invert = F))), TFs = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, subset = go_lists[[3]], invert = F))), NP_NTS = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, subset = go_lists[[13]], invert = F))))
-SI2 <- SI2[!is.na(SI2$NP_NTS),]
+SI2 <- data.frame(cell_type = c(names(gene.lists.pos$subcluster.conserved)), 
+                  all = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, invert = F))), 
+                  TFs = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, subset = go_lists[["GO_TF_list.csv"]], invert = F))), 
+                  NP_NTS = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, subset = go_lists[[14]], invert = F))))
+
+# SI2 <- SI2[!is.na(SI2$NP_NTS),]
 SI.sub.GO <- reshape2::melt(SI2)
 SI.sub.GO$variable <- factor(SI.sub.GO$variable, levels = c("all", "NP_NTS", "TFs"))
 SI.sub.GO$value[is.infinite(SI.sub.GO$value)] <- 0
+# Remove rows with NA values (for non-neuronal NPS_NTS)
+SI.sub.GO <- SI.sub.GO[!is.na(SI.sub.GO$value),]
 
 ## Save
 
 SI.list <- list(SI, SI.sub, SI.ast, SI.ast.sub, SI.sub.GO)
 names(SI.list) <- c("SI", "SI.sub", "SI.ast", "SI.ast.sub", "SI.sub.GO")
 
-saveRDS(SI.list, file = paste("SI_results_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
+# saveRDS(SI.list, file = paste("SI_results_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
 
 ## Calculate Drift between all cell types both within and between species
 
@@ -200,7 +161,7 @@ SI.list[[11]] <- matrix.ast2zeb.sub
 
 names(SI.list) <- c("SI", "SI.sub", "SI.ast", "SI.ast.sub", "SI.sub.GO", "SI.zeb2zeb", "SI.ast2ast", "SI.zeb2zeb.sub", "SI.ast2ast.sub", "SI.ast2zeb", "SI.ast2zeb.sub")
 
-saveRDS(SI.list, file = paste("SI_results_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
+# saveRDS(SI.list, file = paste("SI_results_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
 
 
 ## Make corrected SI
@@ -214,26 +175,35 @@ mart[[2]] <- read.csv("mart_export_AstMex102_paralogs.txt", head = TRUE)
 names(mart) <- c("zebrafish", "astyanax")
 
 
-calcCorrDriftIndex <- function(cell_type1 = cell_type1, cell_type2 = cell_type2, mart.1 = mart[[1]], mart.2 = mart[[2]]) {
+calcCorrDriftIndex <- function(cell_type1 = cell_type1, cell_type2 = cell_type2, mart.1 = mart[[1]], mart.2 = mart[[2]], subset = NULL) {
   colnames(cell_type1) <- paste("cell_type1", colnames(cell_type1), sep = "_")
   colnames(cell_type2) <- paste("cell_type2", colnames(cell_type2), sep = "_")
+  
+  if (!(is.null(subset))) {
+    cell_type1 <- cell_type1[row.names(cell_type1) %in% subset,]
+    cell_type2 <- cell_type2[row.names(cell_type2) %in% subset,]
+  }
+  
   index <- intersect(row.names(cell_type1), row.names(cell_type2))
   df <- cbind(cell_type1[index,], cell_type2[index,])
   df$minimup_p_val <- apply(df[,grep("p_val$", colnames(df))], 1, function(x) metap::minimump(x)$p)
   df <- df[df$minimup_p_val < 0.05,]
   
-  paralog.con <- union(mart.1$Zebrafish.paralogue.associated.gene.name[match(row.names(df), mart.1$Gene.name)], mart.2$Cave.fish.paralogue.associated.gene.name[match(row.names(df), mart.2$Gene.name)])
-  paralog.2 <- union(mart.1$Zebrafish.paralogue.associated.gene.name[match(row.names(cell_type2), mart.1$Gene.name)], mart.2$Cave.fish.paralogue.associated.gene.name[match(row.names(cell_type2), mart.1$Gene.name)])
-  paralog.1 <- union(mart.1$Zebrafish.paralogue.associated.gene.name[match(row.names(cell_type1), mart.1$Gene.name)], mart.2$Cave.fish.paralogue.associated.gene.name[match(row.names(cell_type1), mart.2$Gene.name)])
+  paralog.con <- union(mart.1$Zebrafish.paralogue.associated.gene.name[chmatch(row.names(df), mart.1$Gene.name)], mart.2$Cave.fish.paralogue.associated.gene.name[chmatch(row.names(df), mart.2$Gene.name)])
+  paralog.2 <- union(mart.1$Zebrafish.paralogue.associated.gene.name[chmatch(row.names(cell_type2), mart.1$Gene.name)], mart.2$Cave.fish.paralogue.associated.gene.name[chmatch(row.names(cell_type2), mart.2$Gene.name)])
+  paralog.1 <- union(mart.1$Zebrafish.paralogue.associated.gene.name[chmatch(row.names(cell_type1), mart.1$Gene.name)], mart.2$Cave.fish.paralogue.associated.gene.name[chmatch(row.names(cell_type1), mart.2$Gene.name)])
   
-  paralog.1 <- paralog.1[paralog.1 %in% mart.2$Gene.name]
-  paralog.2 <- paralog.2[paralog.2 %in% mart.1$Gene.name]
+  paralog.1 <- paralog.1[paralog.1 %chin% mart.2$Gene.name]
+  paralog.2 <- paralog.2[paralog.2 %chin% mart.1$Gene.name]
   
-  a1 <- length(row.names(cell_type1)[row.names(cell_type1) %in% union(paralog.con, paralog.2)]) # genes.1 that are paralogs of a conserved or species 2 gene (should be subtracted from genes.1 and added to con)
-  a2 <- length(row.names(cell_type2)[row.names(cell_type2) %in% union(paralog.con, paralog.1)])
+  n.genes.1 <- cell_type1[!(cell_type1 %chin% index)] # species-specific genes
+  n.genes.2 <- cell_type2[!(cell_type2 %chin% index)]
   
-  n.genes.1 <- nrow(cell_type1) - a1
-  n.genes.2 <- nrow(cell_type2) - a2
+  a1 <- length(row.names(n.genes.1)[row.names(n.genes.1) %chin% union(paralog.con, paralog.2)]) # n.genes.1 that are paralogs of a conserved or species 2 gene (should be subtracted from cell_type1 and added to con)
+  a2 <- length(row.names(n.genes.2)[row.names(n.genes.2) %chin% union(paralog.con, paralog.1)])
+  
+  n.genes.1 <- nrow(n.genes.1) - a1
+  n.genes.2 <- nrow(n.genes.2) - a2
   
   n.con <- length(row.names(df)) + a1 + a2
   
@@ -245,7 +215,9 @@ calcCorrDriftIndex <- function(cell_type1 = cell_type1, cell_type2 = cell_type2,
 
 matrix.ast2zeb.sub.corr <- list()
 for (i in 1:length(gene.lists.pos$subcluster.astyanax)) {
+  tic(paste("finished", names(trinarized.exp$subcluster.astyanax)[[i]], "in", sep = " "))
   matrix.ast2zeb.sub.corr[[i]] <- lapply(gene.lists.pos$subcluster.zebrafish, function(x) calcCorrDriftIndex(cell_type1 = gene.lists.pos$subcluster.astyanax[[i]], cell_type2 = x))
+  toc()
 }
 names(matrix.ast2zeb.sub.corr) <- names(gene.lists.pos$subcluster.astyanax)
 
@@ -259,7 +231,27 @@ saveRDS(SI.list, file = paste("SI_results_trinarized_a", a, "_b", b, "_f",f,".rd
 
 
 
+## Calculate corrected SI, based on gene sets
+## cell_type1 and cell_type2 are the dfs for each, so need to lapply/for looop here as well
+all <- lapply(seq_along(gene.lists.pos$subcluster.zebrafish), function(x) calcCorrDriftIndex(cell_type1 = gene.lists.pos$subcluster.zebrafish[[x]], cell_type2 = gene.lists.pos$subcluster.astyanax[[x]]))
 
+TFs <- lapply(seq_along(gene.lists.pos$subcluster.zebrafish), function(x) calcCorrDriftIndex(cell_type1 = gene.lists.pos$subcluster.zebrafish[[x]], cell_type2 = gene.lists.pos$subcluster.astyanax[[x]], subset = go_lists[["GO_TF_list.csv"]]))
+
+NP_NTS <- lapply(seq_along(gene.lists.pos$subcluster.zebrafish), function(x) calcCorrDriftIndex(cell_type1 = gene.lists.pos$subcluster.zebrafish[[x]], cell_type2 = gene.lists.pos$subcluster.astyanax[[x]], subset = go_lists[[14]]))
+
+SI2 <- data.frame(cell_type = c(names(gene.lists.pos$subcluster.zebrafish)), all = unlist(all), TFs = unlist(TFs), NP_NTS = unlist(NP_NTS))
+
+SI2 <- data.frame(cell_type = c(names(gene.lists.pos$subcluster.conserved)), 
+                  all = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, invert = F))), 
+                  TFs = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, subset = go_lists[["GO_TF_list.csv"]], invert = F))), 
+                  NP_NTS = c(unlist(calcDriftIndex(conserved = gene.lists.pos$subcluster.conserved, species.1 = gene.lists.pos$subcluster.zebrafish, species.2 = gene.lists.pos$subcluster.astyanax, subset = go_lists[[14]], invert = F))))
+
+# SI2 <- SI2[!is.na(SI2$NP_NTS),]
+SI.sub.GO.corr <- reshape2::melt(SI2)
+SI.sub.GO.corr$variable <- factor(SI.sub.GO.corr$variable, levels = c("all", "NP_NTS", "TFs"))
+SI.sub.GO.corr$value[is.infinite(SI.sub.GO.corr$value)] <- 0
+# Remove rows with NA values (for non-neuronal NPS_NTS)
+SI.sub.GO.corr <- SI.sub.GO.corr[!is.na(SI.sub.GO.corr$value),]
 
 
 

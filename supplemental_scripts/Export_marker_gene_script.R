@@ -29,6 +29,39 @@ gene.lists.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/A
 
 gene.lists <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/drift_gene_lists.rds")
 
+a = 1.5
+b = 2
+f = 0.1
+
+gene.lists.pos <- readRDS(paste("drift_gene_lists_pos_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
+
+## Export the number of conserved and species specific marker genes per cluster
+
+SI.numbers.species <- lapply(seq_along(1:length(gene.lists.pos[[7]])), function(x) {
+  Zebrafish_specific <- length(setdiff(rownames(gene.lists.pos[[8]][[x]]), rownames(gene.lists.pos[[7]][[x]])))
+  Mexicantetra_specific <- length(setdiff(rownames(gene.lists.pos[[9]][[x]]), rownames(gene.lists.pos[[7]][[x]])))
+  Conserved <- length(rownames(gene.lists.pos[[7]][[x]]))
+  return(data.frame(Conserved, Mexicantetra_specific, Zebrafish_specific)) } )
+
+SI.numbers.species <- Reduce(rbind, SI.numbers.species)
+SI.numbers.species$cell_type <- names(gene.lists.pos[[7]])
+
+SI.numbers.morphs <- lapply(seq_along(1:length(gene.lists.pos[[12]])), function(x) {
+  Surface_specific <- length(setdiff(rownames(gene.lists.pos[[13]][[x]]), rownames(gene.lists.pos[[12]][[x]])))
+  Cave_specific <- length(setdiff(rownames(gene.lists.pos[[14]][[x]]), rownames(gene.lists.pos[[12]][[x]])))
+  Conserved <- length(rownames(gene.lists.pos[[12]][[x]]))
+  return(data.frame(Conserved, Cave_specific, Surface_specific)) } )
+
+SI.numbers.morphs <- Reduce(rbind, SI.numbers.morphs)
+SI.numbers.morphs$cell_type <- names(gene.lists.pos[[12]])
+
+# Export to csv
+
+setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Supplemental_data/SI_numbers_lists/")
+
+write.csv(SI.numbers.species, file = "SI_numbers_species.csv")
+write.csv(SI.numbers.morphs, file = "SI_numbers_morphs.csv")
+
 
 # Adjust gene.lists.ast
 

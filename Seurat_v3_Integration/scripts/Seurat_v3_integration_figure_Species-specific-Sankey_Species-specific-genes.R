@@ -3,14 +3,16 @@ library(Seurat)
 library(reshape)
 library(scales)
 library(networkD3)
+library(viridis)
+library(patchwork)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration")
 
-hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v3.rds")
+hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
 
 ## New try
 
-prop.table <- table(hypo.integrated@meta.data$integrated_SubclusterType, hypo.integrated@meta.data$species.2)
+prop.table <- table(hypo.integrated@meta.data$integrated_Subcluster, hypo.integrated@meta.data$species.2)
 prop.table <- prop.table[prop.table[,1] > 0 | prop.table[,2] > 0,]
 zeb.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[1] < 3 | x[2]/sum(x) > .9))]
 ast.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[2] < 3 | x[1]/sum(x) > .9))]
@@ -52,7 +54,7 @@ sankeyNetwork(Links = data4, Nodes = nodes, Source = "Var1", Target = "Var2", Va
 ## DotPlot for species-specific subcluster marker genes
 
 
-para.dot <- DotPlot(hypo.integrated, features = c("si:ch211-241c24.4", "si:ch211-241c24.3", "zgc:172109", "zgc:172260", "zgc:172290", "hpcal1", "ENSAMXG00000014042",  "vip", "vipb", "ENSAMXG00000017498", "colec12", "ENSAMXG00000007230", "ppp3ca", "PPP3CA", "NPTX1", "ENSAMXG00000025407"), group.by = "integrated_SubclusterType", dot.scale = 4) + RotatedAxis() + coord_flip() 
+para.dot <- DotPlot(hypo.integrated, features = c("si:ch211-241c24.4", "si:ch211-241c24.3", "zgc:172109", "zgc:172260", "zgc:172290", "hpcal1", "ENSAMXG00000014042",  "vip", "vipb", "ENSAMXG00000017498", "colec12", "ENSAMXG00000007230", "ppp3ca", "PPP3CA", "NPTX1", "ENSAMXG00000025407"), group.by = "integrated_Subcluster", dot.scale = 4) + RotatedAxis() + coord_flip() 
 para.dot <- para.dot + theme(axis.text.x = element_text(size = 4, angle = 45), axis.text.y = element_text(size = 8), axis.title = element_blank()) + scale_colour_viridis()
 para.dot <- para.dot + plot_layout(width = unit(c(130), c("mm")), height = unit(c(40), c("mm")))
 dev.new()

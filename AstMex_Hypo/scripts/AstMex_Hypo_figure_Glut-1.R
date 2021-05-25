@@ -113,20 +113,6 @@ row3 <- david.plot + gene + plot_layout(ncol = 2, widths = c(3,1))
 ## Small Sankey plot comes from separate script
 
 
-## Make small figure for galnain and oxytocin cluster expression
-
-galn <- subset(hypo.ast, idents = "Neuronal_07")
-oxt <- subset(hypo.ast, idents = "Neuronal_19")
-
-dot.galn <- DotPlot(galn, features = c("galn"), group.by = "morph", scale.min = 30, scale.max = 80, dot.scale = 4) 
-dot.galn <- dot.galn + theme(axis.title = element_blank(), axis.text.x = element_text(size = 8, angle = 90, hjust = 1, vjust = 0.5), axis.text.y = element_text(size = 8)) + scale_color_viridis_c(limits = c(-1.5,1.5), option = "B")
-
-dot.oxt <- DotPlot(oxt, features = c("oxt", "avp", "ENSAMXG00000021172"), group.by = "morph", scale.min = 30, scale.max = 80, dot.scale = 4) 
-dot.oxt <- dot.oxt + theme(axis.title = element_blank(), axis.text.x = element_text(size = 8, angle = 90, hjust = 1, vjust = 0.5), axis.text.y = element_blank()) + scale_color_viridis_c(limits = c(-1.5,1.5), option = "B")
-
-dev.new()
-dot.galn + dot.oxt + plot_layout(guides = "collect", widths = unit(c(7,13), "mm"), height = unit(c(35,35), "mm"))
-
 
 
 

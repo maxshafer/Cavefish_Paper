@@ -39,7 +39,7 @@ new.cluster.ids <- c("Neuronal_00", "Neuronal_01", "Progenitors_1", "Neuronal_02
                      "Neuronal_17", "Neuronal_18", "Neuronal_19", "Neuronal_20",
                      "vSMC/Pericytes", "Neuronal_21", "Neuronal_22")
 
-Idents(hypo.zeb) <- factor(new.cluster.ids[match(Idents(hypo.zeb), current.cluster.ids)], levels = c("Endothelial","vSMC/Pericytes","Erythrocytes","Ependymal","Progenitors_1","Progenitors_2","Progenitors_3","OPCs","Oligodendrocytes", sort(new.cluster.ids[grep("Neuronal_", new.cluster.ids)]), "Lymphatic","Tcells","Macrophages","Microglia"))
+Idents(hypo.zeb) <- factor(new.cluster.ids[match(Idents(hypo.zeb), current.cluster.ids)], levels = c("Endothelial","vSMC/Pericytes","Erythrocytes","Ependyma_cells","Progenitors_1","Ependymal_1","Ependymal_2","OPCs","Oligodendrocytes", sort(new.cluster.ids[grep("Neuronal_", new.cluster.ids)]), "Lymphatic","Tcells","Macrophages","Microglia"))
 hypo.zeb$Cluster <- Idents(hypo.zeb)
 
 hypo.zeb@meta.data$Subcluster <- paste(hypo.zeb@meta.data$Cluster, hypo.zeb@meta.data$SubclusterType_number, sep = "_")

@@ -47,9 +47,9 @@ new.cluster.ids <- c("Neuronal_00","Neuronal_01","Progenitors","Neuronal_02",
                      "Neuronal_07","Microglia","Neuronal_08","Neuronal_09","Macrophages",
                      "Neuronal_10","Oligodendrocytes","OPCs","Endothelial",     
                      "Neuronal_11","Neuronal_12","Erythrocytes","Ciliated","Lymphatic",
-                     "Ependymal","Neuronal_13" )
+                     "Ependyma","Neuronal_13" )
 
-Idents(hypo.integrated) <- factor(new.cluster.ids[match(Idents(hypo.integrated), current.cluster.ids)], levels = c("Endothelial","Erythrocytes","Ciliated","Ependymal","Progenitors","OPCs","Oligodendrocytes", sort(new.cluster.ids[grep("Neuronal_", new.cluster.ids)]), "Lymphatic","Leucocytes","Macrophages","Microglia"))
+Idents(hypo.integrated) <- factor(new.cluster.ids[match(Idents(hypo.integrated), current.cluster.ids)], levels = c("Endothelial","Erythrocytes","Ciliated","Ependyma","Progenitors","OPCs","Oligodendrocytes", sort(new.cluster.ids[grep("Neuronal_", new.cluster.ids)]), "Lymphatic","Leucocytes","Macrophages","Microglia"))
 hypo.integrated$integrated_Cluster <- Idents(hypo.integrated)
 
 hypo.integrated@meta.data$integrated_Subcluster <- paste(hypo.integrated@meta.data$integrated_Cluster, hypo.integrated@meta.data$integrated_SubclusterType_number, sep = "_")

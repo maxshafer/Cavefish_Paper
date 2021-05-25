@@ -21,6 +21,10 @@ png("Figures/Hypo_integrated_tsne_batch_species.png", height = 7.5, width = 7.5,
 DimPlot(hypo.integrated, reduction = "basetsne", group.by = "species", pt.size = .1, label = F, cols = cols, shuffle = T) + NoAxes()+ theme(legend.position = c(0.75,0.95))
 dev.off()
 
+png("Figures/Hypo_integrated_umap_batch_species.png", height = 7.5, width = 7.5, res = 500, units = "in")
+DimPlot(hypo.integrated, reduction = "baseumap", group.by = "species", pt.size = .1, label = F, cols = cols, shuffle = T) + NoAxes()+ theme(legend.position = c(0.75,0.95))
+dev.off()
+
 png("Figures/Hypo_integrated_tsne_species.png", height = 7.5, width = 7.5, res = 500, units = "in")
 DimPlot(hypo.integrated, reduction = "tsne", group.by = "species", pt.size = .1, label = F, cols = cols, shuffle = T) + NoAxes()+ theme(legend.position = c(0.75,0.95))
 dev.off()
@@ -37,8 +41,16 @@ png("Figures/Hypo_integrated_umap_species2.png", height = 7.5, width = 7.5, res 
 DimPlot(hypo.integrated, reduction = "umap", group.by = "species.2", pt.size = .1, label = F, cols = cols2, shuffle = T) + NoAxes() + theme(legend.position = c(0.75,0.95))
 dev.off()
 
+png("Figures/Hypo_integrated_umap_species.png", height = 7.5, width = 7.5, res = 500, units = "in")
+DimPlot(hypo.integrated, reduction = "umap", group.by = "species", pt.size = .1, label = F, cols = cols, shuffle = T) + NoAxes() + theme(legend.position = c(0.75,0.95))
+dev.off()
+
 png("Figures/Hypo_integrated_umap_Cluster.png", height = 7.5, width = 7.5, res = 1000, units = "in")
 DimPlot(hypo.integrated, reduction = "umap", group.by = "integrated_Cluster", pt.size = .1, label = TRUE, shuffle = T) + NoAxes() + NoLegend()
+dev.off()
+
+png("Figures/Hypo_integrated_umap_Cluster_nolabel.png", height = 7.5, width = 7.5, res = 1000, units = "in")
+DimPlot(hypo.integrated, reduction = "umap", group.by = "integrated_Cluster", pt.size = .1, label = F, shuffle = T) + NoAxes() + NoLegend()
 dev.off()
 
 png("Figures/Hypo_integrated_tsne_Cluster_nolabel.png", height = 7.5, width = 7.5, res = 1000, units = "in")
@@ -66,19 +78,10 @@ gene.lists <- readRDS("drift_gene_lists_2.rds")
 
 genes.to.plot <- lapply(gene.lists[[1]], function(x) row.names(x)[1:5])
 
-marker.sub <- DotPlot(hypo.integrated, features = rev(unique(unlist(genes.to.plot))), group.by = "integrated_Cluster", scale.max = 200) + coord_flip() + scale_color_viridis() + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(size = 8, angle = 45, hjust = 1, vjust = 1), axis.title = element_blank())
-marker.sub <- marker.sub + theme(axis.text = element_text(size = 6))
+# Replace markers for Leucocytes with other genes (#1 is good)
+genes.to.plot$Leucocytes <- row.names(gene.lists[[1]]$Leucocytes)[c(1,6,9,16,57,60)]
 
-png("Figures/Hypo_integrated_dotplots_Cluster_markers.png", height = 10, width = 6.5, units = "in", res = 500) 
-marker.sub
-dev.off()
-
-# Make neurotransmitter dot plot for Neuronal subclusters
-Idents(hypo.integrated) <- "integrated_Cluster"
-hypo.integrated.neuronal <- subset(hypo.integrated, ident = levels(Idents(hypo.integrated))[grep("Neuronal", levels(Idents(hypo.integrated)))])
-
-nt.plot <- DotPlot(object = hypo.integrated.neuronal, features = rev(c("slc17a6a", "slc17a6b", "gad1b", "gad2")), group.by = "integrated_Subcluster") + theme(legend.position = "right") + RotatedAxis() + scale_color_viridis()
-nt.plot <- nt.plot + theme(axis.text = element_text(size = 6), axis.title = element_blank())
+marker.sub <- DotPlot(hypo.integrated, features = rev(unique(unlist(genes.to.plot))), group.by = "integrated_Cluster", scale.max = 200) + coord_flip() + scale_color_viridis() + theme(axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 8, angle = 45, hjust = 1, vjust = 1), axis.title = element_blank())
 
 ### Make a prop plot with x-axis scaled by cluster size
 
@@ -92,19 +95,25 @@ props <- melt(props)
 props$type_total <- rep(type_total, 3)
 
 # Order by total population level (can change to another thing)
-props$Var1 <- factor(props$Var1, levels = names(sort(type_total)))
+# props$Var1 <- factor(props$Var1, levels = names(sort(type_total)))
 
 prop.plot <- ggplot(props, aes(x = value, y = Var1, width = (type_total), fill = Var2)) + geom_bar(stat = "identity", position = "fill", colour = "black", size = 0) + scale_fill_manual(values = cols) + theme(panel.spacing.y = unit(.25, "mm"), strip.text.y = element_blank(), strip.background = element_blank(), axis.ticks.length.y =  unit(.5, "cm"), axis.text.x = element_text(angle = 45, hjust = 1), axis.text = element_text(size = 8), axis.title.x = element_text(size = 10), legend.title = element_blank()) + xlab("Prop. of total species cells") + ylab(element_blank()) + geom_vline(xintercept = c(0.3333, 0.6666), linetype = "dashed", color = "black") + facet_grid(rows = vars(Var1), scales = "free", space = "free")
 prop.plot <- prop.plot + theme(axis.title.x = element_blank())
-pdf("Figures/Hypo_integrated_Cluster_barplots.pdf", width = 10, height = 3)
-prop.plot
-dev.off()
 
+# Make % species cell histogram
+
+props <- table(hypo.integrated@meta.data$integrated_Subcluster, hypo.integrated@meta.data$species.2)
+colnames(props) <- c("Mexican tetra", "Zebrafish")
+props <- props/rowSums(props)
+props <- melt(props)
+props$Var2 <- factor(props$Var2, levels = c("Zebrafish", "Mexican tetra")) 
+
+density.plot <- ggplot(props[props$value > 0.5,], aes(x = value, group = Var2, fill = Var2, colour = Var2)) + geom_density(alpha = 0.25) + theme_classic() + scale_colour_viridis_d() + scale_fill_viridis_d() + theme(legend.position = c(0.65,0.75), legend.title = element_blank())
+density.plot <- density.plot + ylab("Density") + xlab("Fraction of subcluster") + theme(axis.text = element_text(size = 8), axis.title = element_text(size = 10))
 ## Plot plots using patchwork
 # Figure S4 - marker genes and proportion
 
-marker.sub + prop.plot + plot_layout(height = unit(c(150), c("mm")), width = unit(c(75,20), c("mm")), guides = "collect")
+pdf("Figures/Hypo_integrated_Figure-S3.pdf", height = 12, width = 8) 
+marker.sub + prop.plot + density.plot + plot_layout(ncol = 2, height = unit(c(200, 20), c("mm")), width = unit(c(80,22,80), c("mm")), guides = "collect")
+dev.off()
 
-# Figure S5 - nt usage
-
-nt.plot + plot_layour()

@@ -189,12 +189,12 @@ calcDriftIndex <- function(conserved = conserved, species.1 = species.1, species
 	species.2 <- species.2[names]
 	DI <- list()
 	if (is.null(subset)) {
-		DI <- lapply(seq_along(conserved), function(x) sqrt( abs( (1 - (length(conserved[[x]]) / length(species.1[[x]]))) * (1 - (length(conserved[[x]]) / length(species.2[[x]]))) ) ))
+		DI <- lapply(seq_along(conserved), function(x) 1- sqrt( abs( (1 - (length(conserved[[x]]) / length(species.1[[x]]))) * (1 - (length(conserved[[x]]) / length(species.2[[x]]))) ) ))
 	} else {
 		if (invert == FALSE) {
-		DI <- lapply(seq_along(conserved), function(x) sqrt( abs( (1 - (length(row.names(conserved[[x]])[row.names(conserved[[x]]) %in% subset]) / length(row.names(species.1[[x]])[row.names(species.1[[x]]) %in% subset]))) * (1 - (length(row.names(conserved[[x]])[row.names(conserved[[x]]) %in% subset])) / length(row.names(species.2[[x]])[row.names(species.2[[x]]) %in% subset])) ) ))
+		DI <- lapply(seq_along(conserved), function(x) 1- sqrt( abs( (1 - (length(row.names(conserved[[x]])[row.names(conserved[[x]]) %in% subset]) / length(row.names(species.1[[x]])[row.names(species.1[[x]]) %in% subset]))) * (1 - (length(row.names(conserved[[x]])[row.names(conserved[[x]]) %in% subset])) / length(row.names(species.2[[x]])[row.names(species.2[[x]]) %in% subset])) ) ))
 	} else {
-		DI <- lapply(seq_along(conserved), function(x) sqrt( abs( (1 - (length(row.names(conserved[[x]])[!(row.names(conserved[[x]]) %in% subset)]) / length(row.names(species.1[[x]])[!(row.names(species.1[[x]]) %in% subset)]))) * (1 - (length(row.names(conserved[[x]])[!(row.names(conserved[[x]]) %in% subset)])) / length(row.names(species.2[[x]])[!(row.names(species.2[[x]]) %in% subset)])) ) ))
+		DI <- lapply(seq_along(conserved), function(x) 1 -sqrt( abs( (1 - (length(row.names(conserved[[x]])[!(row.names(conserved[[x]]) %in% subset)]) / length(row.names(species.1[[x]])[!(row.names(species.1[[x]]) %in% subset)]))) * (1 - (length(row.names(conserved[[x]])[!(row.names(conserved[[x]]) %in% subset)])) / length(row.names(species.2[[x]])[!(row.names(species.2[[x]]) %in% subset)])) ) ))
 	}
 	}
 	names(DI) <- names

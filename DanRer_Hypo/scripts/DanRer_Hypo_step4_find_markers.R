@@ -8,7 +8,7 @@ setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo")
 
 ## Load objects
 
-hypo <- readRDS("DanRer_65k.rds")
+hypo <- readRDS("DanRer_65k_vR.rds")
 
 ############## Cluster Markers ##############
 

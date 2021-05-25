@@ -40,8 +40,7 @@ hCluster <- function(x = go_analysis, measure.var = "Benj.value", category = "KE
 }
 
 ### Make new gene list that is all the subcluster genes, but named by cluster
-gene.lists.pos <- readRDS(file = "drift_gene_lists_pos_2.rds")
-str(gene.lists.pos, max.level = 1)
+gene.lists.pos <- readRDS("drift_gene_lists_pos_trinarized_a1.5_b2_f0.1.rds")
 
 ## Subset this list for non-paralogs
 
@@ -172,10 +171,10 @@ go_analysis$L3 <- paste(go_analysis$L1, go_analysis$L2, sep = "_")
 
 go_analysis$L1 <- factor(go_analysis$L1, levels = levels(hypo.integrated@meta.data$integrated_Cluster))
 
-go.plot <- ggplot(data = hCluster(x = go_analysis[go_analysis$Benj.value < .05,], measure.var = "Benj.value", category = "KEGG_PATHWAY"), aes(L1, Term, size = Benj.value, fill = FoldE, shape = L2, color = L2)) + geom_point(alpha = 0.75) + scale_shape_manual(values = c(21, 24)) + scale_size_continuous(range = c(6, 2)) + scale_color_manual(values = c("black", "black")) + scale_fill_gradient2(low = "skyblue2", high = "khaki2") + theme_minimal() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 5), axis.text.y = element_text(size = 6), axis.title.x = element_blank(), axis.title.y = element_blank()) + coord_flip()
+go.plot <- ggplot(data = hCluster(x = go_analysis[go_analysis$Benj.value < .05,], measure.var = "Benj.value", category = "KEGG_PATHWAY"), aes(L1, Term, size = Benj.value, fill = FoldE, shape = L2, color = L2)) + geom_point(alpha = 0.75) + scale_shape_manual(values = c(21, 24)) + scale_size_continuous(range = c(6, 2)) + scale_color_manual(values = c("black", "black")) + scale_fill_gradient2(low = "skyblue2", high = "khaki2") + theme_minimal() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 8), axis.text.y = element_text(size = 8), axis.title.x = element_blank(), axis.title.y = element_blank()) + coord_flip()
 
-dev.new()
-go.plot + plot_layout(width = unit(90, "mm"), height = unit(90, "mm"))
-
+pdf("Figures/Hypo_integrated_GO-enrichment_plot.pdf", height = 11, width = 9) 
+go.plot + plot_layout(width = unit(120, "mm"), height = unit(90, "mm"))
+dev.off()
 
 

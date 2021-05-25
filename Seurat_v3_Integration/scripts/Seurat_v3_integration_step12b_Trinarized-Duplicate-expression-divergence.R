@@ -17,7 +17,7 @@ library(patchwork)
 
 a = 1.5
 b = 2
-f = 0.2
+f = 0.35
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
@@ -48,8 +48,8 @@ getSEQ <- function(x) {
 
 ### Load Seurat object and calculate average experssion per cluster (Subtype and SubclusterType)
 
-hypo.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k.rds")
-hypo.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k.rds")
+hypo.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo/DanRer_65k_vR.rds")
+hypo.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k_vR.rds")
 
 zeb.genes <- rownames(GetAssayData(hypo.zeb))
 ast.genes <- rownames(GetAssayData(hypo.ast))
@@ -121,11 +121,11 @@ norm.cluster.filtered.zeb <- lapply(c(trinarized.exp$subcluster.zebrafish, trina
 norm.cluster.filtered.ast <- lapply(c(trinarized.exp$subcluster.astyanax, trinarized.exp$specific.astyanax), function(x) names(x))
 
 
-gene.pairs.filtered.zeb <- lapply(gene.pairs.zeb, function(x) base::subset(x, x[,1] %in% unique(unlist(norm.cluster.filtered.zeb)) | x[,2] %in% unique(unlist(norm.cluster.filtered.zeb))))
+gene.pairs.filtered.zeb <- lapply(gene.pairs.zeb, function(x) base::subset(x, x[,1] %in% unique(unlist(norm.cluster.filtered.zeb)) & x[,2] %in% unique(unlist(norm.cluster.filtered.zeb))))
 
-gene.pairs.filtered.ast <- lapply(gene.pairs.ast, function(x) base::subset(x, x[,1] %in% unique(unlist(norm.cluster.filtered.ast)) | x[,2] %in% unique(unlist(norm.cluster.filtered.ast))))
+gene.pairs.filtered.ast <- lapply(gene.pairs.ast, function(x) base::subset(x, x[,1] %in% unique(unlist(norm.cluster.filtered.ast)) & x[,2] %in% unique(unlist(norm.cluster.filtered.ast))))
 
-gene.pairs.filtered.id <- lapply(gene.pairs.id, function(x) base::subset(x, x[,1] %in% unique(unlist(norm.cluster.filtered.zeb)) | x[,2] %in% unique(unlist(norm.cluster.filtered.zeb))))
+gene.pairs.filtered.id <- lapply(gene.pairs.id, function(x) base::subset(x, x[,1] %in% unique(unlist(norm.cluster.filtered.zeb)) & x[,2] %in% unique(unlist(norm.cluster.filtered.zeb))))
 
 # Ok for each of gene.pairs, calculate the dT
 
@@ -276,7 +276,7 @@ calcAncestraldT <- function(cell.types = cell.types.list.element, sp1 = length(n
     if (is.na((ntu[[x]] - nti[[x]])/ntu[[x]])) {
       return(NA)
     } else {
-      (ntu[[x]] - nti[[x]])/ntu[[x]]
+      1-(ntu[[x]] - nti[[x]])/ntu[[x]]
     }
   })
   names(dT) <- c("dT_zebrafish", "dT_mexican_tetra")

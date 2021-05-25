@@ -4,8 +4,8 @@ library(networkD3)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
-hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v3.rds")
-Idents(hypo.integrated) <- "integrated_Subtype"
+hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
+Idents(hypo.integrated) <- "integrated_Cluster"
 
 ######### Non-homologous Genes #########
 
@@ -27,10 +27,10 @@ zeb.genes1$Gene.name[!(is.na(zeb.genes1$GeneID))] <- zeb.genes1$GeneID[!(is.na(z
 zeb.genes <- zeb.genes1$Gene.name
 
 # Some index files
-clusters <- c("GABA_0", "GABA_1", "Glut_0", "Glut_1", "Glut_2", "GABA_2", "Glut_3", "Glut_4", "Glut_5", "GABA_3", "GABA_4", "Glut_6", "Glut_7")
-int.idents <- c(50, 25, 25, 25, 25, 20, 20, 15, 15, 15, 10, 10, 5)
+clusters <- c("Neuronal_00", "Neuronal_01", "Neuronal_02", "Neuronal_03", "Neuronal_04", "Neuronal_05", "Neuronal_06", "Neuronal_07", "Neuronal_08", "Neuronal_09", "Neuronal_10", "Neuronal_11", "Neuronal_12", "Neuronal_13")
+int.idents <- c(50, 25, 25, 25, 25, 20, 20, 15, 15, 15, 10, 10, 5, 5)
 
-idents <- c("Glut_0", "Glut_2", "Glut_3", "Glut_6", "Glut_7", "GABA_3")
+idents <- c("Neuronal_03","Neuronal_05", "Neuronal_07", "Neuronal_10", "Neuronal_12", "Neuronal_13")
 
 subsets <- list()
 # subsets.markers <- list()
@@ -72,22 +72,22 @@ for (i in 1:length(idents)) {
 
 plots <- list()
 for (i in 1:length(subsets)) {
-  p1 <- DimPlot(subsets[[i]], reduction = "tsne", group.by = "integrated_SubclusterType", label = T, label.size = 2, pt.size = 0.1, repel = T) + NoLegend() + NoAxes()
+  p1 <- DimPlot(subsets[[i]], reduction = "tsne", group.by = "integrated_Subcluster", label = T, label.size = 2, pt.size = 0.1, repel = T) + NoLegend() + NoAxes()
   p3 <- DimPlot(subsets[[i]], reduction = "tsne", group.by = "integrated_snn_res.0.25", label = T, label.size = 2, pt.size = 0.1, repel = T) + NoLegend() + NoAxes()
   plots[[i]] <- p1
-  plots[[i+6]] <- p3
+  plots[[i+8]] <- p3
 }
 plots <- lapply(plots, function(x) x & theme(axis.text = element_blank(), axis.title = element_blank()))
 # plots[[1]] <- plots[[1]] & theme(axis.text = element_text(size = 8), axis.title = element_text(size = 10))
 
-patchwork <- plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]] + plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]] + plots[[9]] + plots[[10]] + plots[[11]] + plots[[12]]
+patchwork <- plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]] + plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]] + plots[[9]] + plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]] + plots[[14]] + plots[[15]] + plots[[16]]
 patchwork <- patchwork + plot_layout(byrow = F, ncol = 2, height = unit(c(22), c("mm")), width = unit(c(22), c("mm")), guides = "collect")
 
 dev.new()
 patchwork
 
 # Make Sankey for comparing old subclusters, to new subclusters
-data <- lapply(subsets, function(x) reshape2::melt(table(x@meta.data$integrated_SubclusterType, x@meta.data$integrated_snn_res.0.25)))
+data <- lapply(subsets, function(x) reshape2::melt(table(x@meta.data$integrated_Subcluster, x@meta.data$integrated_snn_res.0.25)))
 
 nodes <- lapply(data, function(x) unique(c(as.character(unique(x$Var2)), as.character(unique(x$Var1)))))
 nodes <- lapply(nodes, function(x) as.data.frame(x))

@@ -9,55 +9,56 @@ library(viridis)
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
-hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v3.rds")
-gene.lists.pos <- readRDS("drift_gene_lists_pos.rds")
+hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_vR.rds")
 
-SI.list <- readRDS("SI_results_trinarized_markers.rds")
+
+### Prep figures orthology confidence metrics
+
+## Make orthology metrics figures
+
+orth_conf_metrics <- readRDS(file = paste("paralogs-orthology-conf-metrics_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
+
+confidence <- ggplot(reshape2::melt(orth_conf_metrics[[1]][,2:3]), aes(x = variable, y = value, group = variable, colour = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black")
+confidence <- confidence + theme_classic() + ylim(c(0,1))  + ylab("Gene orthology confidence")
+confidence <- confidence + theme(axis.title.x = element_blank(), axis.text = element_text(size = 8), axis.title = element_text(size = 10), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + NoLegend()
+
+gene.order <- ggplot(reshape2::melt(orth_conf_metrics[[2]][,2:3]), aes(x = variable, y = value, group = variable, colour = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black")
+gene.order <- gene.order + theme_classic() + ylim(c(0,100)) + ylab("Gene order score")
+gene.order <- gene.order + theme(axis.title.x = element_blank(), axis.text = element_text(size = 8), axis.title = element_text(size = 10), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + NoLegend()
+
+# Make synteny % figure
+
+syn.corr <- readRDS(file = paste("synteny-corrected-percentage_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
+
+syn.corr.plot <- ggplot(reshape2::melt(syn.corr), aes(x = variable, y = value*100, colour = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, colour = "black") + theme_classic()
+syn.corr.plot <- syn.corr.plot + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + ylab("% Synteny-corrected genes") + NoLegend()
+syn.corr.plot <- syn.corr.plot + scale_x_discrete(breaks=c("con.markers","zeb.markers", "ast.markers", "zeb.para.markers","ast.para.markers"), labels=c("Conserved \n marker genes", "Zebrafish \n marker genes", "Mexican tetra \n marker genes", "Zebrafish \n paralogs", "Mexican tetra \n paralogs"))
+
+# Plot them
+
+pdf("Figures/Hypo_integrated_orthology_confidence_metrics.pdf", height = 9, width = 9) 
+confidence + gene.order + syn.corr.plot + plot_layout(ncol = 3, widths = unit(c(30,30,45), c("mm")), height = unit(c(60), c("mm")), guides = "collect")
+dev.off()
+
+
+## Load files for making other figures
+
+a = 1.5
+b = 2
+f = 0.1
+
+gene.lists.pos <- readRDS(paste("drift_gene_lists_pos_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
+
+SI.list <- readRDS(paste("SI_results_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
 SI <- SI.list[[1]]
 SI.sub <- SI.list[[2]]
 SI.ast <- SI.list[[3]]
 SI.ast.sub <- SI.list[[4]]
 
-## Make Correlation matrix
-
-norm.cluster <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/Normed_expression_data.rds")
-str(norm.cluster, max.level = 2)
-
-intersect.genes <- intersect(row.names(norm.cluster[[4]][[1]]), row.names(norm.cluster[[4]][[2]]))
-
-zeb.avg <- norm.cluster[[4]][[1]][intersect.genes,]
-ast.avg <- norm.cluster[[4]][[2]][intersect.genes,]
-
-zeb.ast <- cor(zeb.avg, ast.avg, method = "pearson") # row x column
-# zeb.ast <- zeb.ast/rowMax(zeb.ast) # scale by row, looks very similar
-zeb.ast <- reshape2::melt(zeb.ast)
-
-Corr.matrix.scaled <- ggplot(zeb.ast, aes(x = Var1, y = Var2, fill = value)) + geom_tile() + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 3)) + scale_fill_viridis(direction = 1, limits = c(0,1))
-Corr.matrix.scaled <- Corr.matrix.scaled + theme(axis.title = element_blank())
-
-## Make comparison figure SI between zeb-ast and cave-surface
-
-SI.combined <- rbind(SI, SI.ast)
-SI.combined$species <- c(rep("Between species", nrow(SI)), rep("Between species-morphs", nrow(SI.ast)))
-species.SI <- ggplot(SI.combined, aes(x = species, y = values, colour = species, group = species)) + geom_jitter() + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black") + scale_color_viridis_d() + theme_classic() + ylim(c(0,1)) + scale_colour_viridis_d()
-species.SI <- species.SI + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 8), axis.title.x = element_blank())+ ylab(expression(paste("Similarity Index (", italic("SI"), ")")))
-
-SI.combined.sub <- rbind(SI.sub[,1:3], SI.ast.sub)
-SI.combined.sub$species <- c(rep("Between species", nrow(SI.sub)), rep("Between species-morphs", nrow(SI.ast.sub)))
-species.SI.sub <- ggplot(SI.combined.sub, aes(x = species, y = values, colour = species, group = species)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black") + scale_color_viridis_d() + theme_classic() + ylim(c(0,1)) + scale_colour_viridis_d()
-species.SI.sub <- species.SI.sub + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 8), axis.title.x = element_blank())+ ylab(expression(paste("Similarity Index (", italic("SI"), ")"))) + NoLegend()
-
-## Plot Figure S4
-dev.new()
-Corr.matrix.scaled + plot_layout(height = unit(c(90), c("mm")), width = unit(c(90), c("mm")))
-dev.new()
-species.SI.sub + plot_layout(height = unit(c(30), c("mm")), width = unit(c(15), c("mm")))
-
 ## Similarity Index (SI) and % paralog figures
 
 matrix.ast2.zeb.sub <- SI.list[[11]]
-names(matrix.ast2.zeb.sub) <- names(gene.lists.pos$conserved.markers.sub)
-
+names(matrix.ast2.zeb.sub) <- rownames(SI.list[[2]])
 
 ## Make row-scaled heatmap
 matrix.data <- lapply(matrix.ast2.zeb.sub, function(x) unlist(x))
@@ -66,7 +67,7 @@ matrix.data <- reshape2::melt(lapply(matrix.data, function(x) (x)/max(x)))
 matrix.data$L2 <- rep(names(matrix.ast2.zeb.sub[[1]]),151)
 matrix.data$L1 <- factor(matrix.data$L1, levels = levels(hypo.integrated@meta.data$integrated_Subcluster))
 matrix.data$L2 <- factor(matrix.data$L2, levels = levels(hypo.integrated@meta.data$integrated_Subcluster))
-SI.matrix.scaled <- ggplot(matrix.data, aes(x = L2, y = L1, fill = value)) + geom_tile() + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 3)) + scale_fill_viridis(direction = 1, limits = c(0,1))
+SI.matrix.scaled <- ggplot(matrix.data, aes(x = L2, y = L1, fill = value)) + geom_tile() + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 6)) + scale_fill_viridis(direction = 1, limits = c(0,1))
 
 SI.matrix.scaled <- SI.matrix.scaled + theme(axis.title = element_blank())
 
@@ -82,7 +83,7 @@ neuronal <- neuronal + theme(axis.text.x = element_text(angle = 90, hjust = 1, v
 
 SI.compare <- data.frame(cell_type = SI$Cluster, cluster = SI$values, cell_types = aggregate(SI.sub[,2], list(SI.sub$Cluster), mean)[,2])
 cluster <- ggplot(reshape::melt(SI.compare), aes(x = variable, y = value, group = cell_type, color = cell_type)) + geom_jitter(size = 0.5) + geom_line(aes(group = cell_type), colour = "grey75") + geom_boxplot(aes(group = variable),outlier.color = NA, fill = "transparent", color = "black") + theme_classic() + theme(legend.position = "none")
-cluster <- cluster + scale_x_discrete(labels=c("cluster" = "Cluster", "cell_type" = "Subcluster")) + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 8), axis.title.x = element_blank())+ ylab(expression(paste("Similarity Index (", italic("SI"), ")"))) 
+cluster <- cluster + scale_x_discrete(labels=c("cluster" = "Cluster", "cell_types" = "Subcluster")) + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.text = element_text(size = 8), axis.title.x = element_blank())+ ylab(expression(paste("Similarity Index (", italic("SI"), ")"))) 
 
 # t.test(SI.sub[SI.sub$Neuronal == "Neuronal", "values"], SI.sub[SI.sub$Neuronal == "Progenitors", "values"])
 # t.test(SI.compare$cell_types, SI.compare$cluster, paired = T)
@@ -90,7 +91,8 @@ cluster <- cluster + scale_x_discrete(labels=c("cluster" = "Cluster", "cell_type
 ### Paralog plots
 ## Make SI by Paralog (sum?? or mean??)
 
-para.results <- readRDS("Paralog_results_trinarized_markers.rds")
+para.results <- readRDS(paste("Paralog-results_markers-trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))  
+
 para.data <- reshape2::melt(para.results[[1]][,13:18])
 para.data.sub <- reshape2::melt(para.results[[2]][,13:19])
 
@@ -98,15 +100,15 @@ percent.para <- ggplot(para.data.sub[para.data.sub$variable == c("percent.para.1
 percent.para <- percent.para + scale_x_discrete(labels=c("percent.para.1" = "Zebrafish", "percent.para.2" = "Mexican tetra")) + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.title.x = element_blank()) + ylab("% Paralogs")
 
 odds.para <- ggplot(para.data.sub[para.data.sub$variable == c("fisher.odds.1", "fisher.odds.2"),], aes(x = variable, y = value, colour = variable, group = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black") + scale_color_viridis_d() + theme_classic()
-odds.para <- percent.para + scale_x_discrete(labels=c("fisher.odds.1" = "Zebrafish", "fisher.odds.2" = "Mexican tetra")) + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.title.x = element_blank()) + ylab("Odds Ratio")
+odds.para <- odds.para + scale_x_discrete(labels=c("fisher.odds.1" = "Zebrafish", "fisher.odds.2" = "Mexican tetra")) + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.title.x = element_blank()) + ylab("Odds Ratio")
 
 ## Divergence (dT) plots
 ## Figure 2d-e, S4c
 
-dT.list <- readRDS(file = "dT_list.rds")
+dT.list <- readRDS(file = paste("dT_list-trinarized_a",a,"_b",b, "_f",f,"_cutoff.rds", sep = ""))
 
 branch.levels <- levels(dT.list[[2]]$branch)
-branch.levels <- c(branch.levels, "Danio rerio")
+#branch.levels <- c(branch.levels, "Danio rerio")
 
 dT.list[[1]]$branch <- factor(dT.list[[1]]$branch, levels = branch.levels)
 dT.list[[2]]$branch <- factor(dT.list[[2]]$branch, levels = branch.levels)
@@ -144,42 +146,20 @@ dev.new()
 part2
 
 
-### Prep figures for Figure S5
-
-## Make orthology metrics figures
-
-orth_conf_metrics <- readRDS(file = "paralogs-orthology-conf-metrics.rds")
-
-confidence <- ggplot(reshape2::melt(orth_conf_metrics[[1]][,2:3]), aes(x = variable, y = value, group = variable, colour = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black")
-confidence <- confidence + theme_classic() + ylim(c(0,1))  + ylab("Gene orthology confidence")
-confidence <- confidence + theme(axis.title.x = element_blank(), axis.text = element_text(size = 8), axis.title = element_text(size = 10)) + NoLegend()
-
-gene.order <- ggplot(reshape2::melt(orth_conf_metrics[[2]][,2:3]), aes(x = variable, y = value, group = variable, colour = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black")
-gene.order <- gene.order + theme_classic() + ylim(c(0,100)) + ylab("Gene order score")
-gene.order <- gene.order + theme(axis.title.x = element_blank(), axis.text = element_text(size = 8), axis.title = element_text(size = 10)) + NoLegend()
-
-# Make synteny % figure
-
-syn.corr <- readRDS(file = "/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/synteny-corrected-percentage.rds")
-
-syn.corr.plot <- ggplot(reshape2::melt(syn.corr), aes(x = variable, y = value*100, colour = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA) + theme_classic()
-syn.corr.plot <- syn.corr.plot + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + ylab("% Synteny-corrected genes") + NoLegend()
-syn.corr.plot <- syn.corr.plot + scale_x_discrete(breaks=c("con.markers","zeb.markers", "ast.markers", "zeb.para.markers","ast.para.markers"), labels=c("Conserved \n marker genes", "Zebrafish \n marker genes", "Mexican tetra \n marker genes", "Zebrafish \n paralogs", "Mexican tetra \n paralogs"))
-
 
 ## Make paralog % by drift scatter
 
 para.results[[2]]$Neuronal <- "Non-Neuronal"
 para.results[[2]]$Neuronal[grepl("Neuronal", para.results[[2]]$Subcluster)] <- "Neuronal"
 
-r <- cor((para.results[[2]]$percent.para.2 + para.results[[2]]$percent.para.1)/2, para.results[[2]]$driftindex)
+r <- cor((para.results[[2]]$percent.para.2 + para.results[[2]]$percent.para.1)/2, para.results[[2]]$similarityindex)
 para.results.neuronal <- para.results[[2]][para.results[[2]]$Neuronal == "Neuronal",]
-r <- cor((para.results.neuronal$percent.para.2 + para.results.neuronal$percent.para.1)/2, para.results.neuronal$driftindex)
+r <- cor((para.results.neuronal$percent.para.2 + para.results.neuronal$percent.para.1)/2, para.results.neuronal$similarityindex)
 para.results.non <- para.results[[2]][para.results[[2]]$Neuronal == "Non-Neuronal",]
-r <- cor((para.results.non$percent.para.2 + para.results.non$percent.para.1)/2, para.results.non$driftindex)
+r <- cor((para.results.non$percent.para.2 + para.results.non$percent.para.1)/2, para.results.non$similarityindex)
 
 ## If you group by neuronal/non, there is a clear difference in the relationship
-para.drift <- ggplot(para.results[[2]], aes(x = (percent.para.2 + percent.para.1)/2, y = driftindex, color = Cluster, label = Subclusters)) + geom_point(size = 0.5) + guides(color = F) + ylab("Drift Index") + xlab("Mean of % Paralogs per species") # + geom_smooth(method = lm, se = T, color = "black", fill = "grey85")
+para.drift <- ggplot(para.results[[2]], aes(x = (percent.para.2 + percent.para.1)/2, y = similarityindex, color = Cluster, label = Subclusters)) + geom_point(size = 0.5) + guides(color = F) + ylab("Drift Index") + xlab("Mean of % Paralogs") # + geom_smooth(method = lm, se = T, color = "black", fill = "grey85")
 para.drift <- para.drift + theme_classic() + theme(axis.text = element_text(size = 8), axis.title = element_text(size = 10)) + annotate(geom = "text", x = 2.5, y = 0.55, label = paste("Pearson r = ", round(r,digits = 2), sep = ""), color = "black") + NoLegend()
 
 
@@ -187,7 +167,7 @@ para.drift <- para.drift + theme_classic() + theme(axis.text = element_text(size
 
 ## Row-scaled delta between SI and Corrected-SI
 SI.delta <- lapply(seq_along(SI.list[[11]]), function(x) lapply(seq_along(SI.list[[11]][[x]]), function(y) SI.list[[12]][[x]][[y]] - SI.list[[11]][[x]][[y]]))
-names(SI.delta) <- names(gene.lists.pos$conserved.markers.sub)
+names(SI.delta) <- names(gene.lists.pos$subcluster.conserved)
 
 SI.delta <- lapply(SI.delta, function(x) unlist(x))
 SI.delta <- reshape2::melt(lapply(SI.delta, function(x) (x)/max(x)))
@@ -200,14 +180,14 @@ SI.delta.plot <- ggplot(SI.delta, aes(x = L2, y = L1, fill = value)) + geom_tile
 ## Make jitter plot comparing uncorrected and corrected SI by subcluster
 
 matrix.data <- lapply(SI.list[[11]], function(x) unlist(x))
-names(matrix.data) <- names(gene.lists.pos$conserved.markers.sub)
+names(matrix.data) <- names(gene.lists.pos$subcluster.conserved)
 matrix.data <- reshape2::melt(matrix.data)
 matrix.data$L2 <- rep(names(matrix.ast2.zeb.sub[[1]]),151)
 matrix.data$L1 <- factor(matrix.data$L1, levels = levels(hypo.integrated@meta.data$integrated_Subcluster))
 matrix.data$L2 <- factor(matrix.data$L2, levels = levels(hypo.integrated@meta.data$integrated_Subcluster))
 
 matrix.data.corr <- lapply(SI.list[[12]], function(x) unlist(x))
-names(matrix.data.corr) <- names(gene.lists.pos$conserved.markers.sub)
+names(matrix.data.corr) <- names(gene.lists.pos$subcluster.conserved)
 matrix.data.corr <- reshape2::melt(matrix.data.corr)
 matrix.data.corr$L2 <- rep(names(matrix.ast2.zeb.sub[[1]]),151)
 matrix.data.corr$L1 <- factor(matrix.data.corr$L1, levels = levels(hypo.integrated@meta.data$integrated_Subcluster))
@@ -218,9 +198,53 @@ SI.combined.corr$sample <- c(rep("Uncorrected SI", 151), rep("Corrected SI", 151
 SI.combined.corr$sample <- factor(SI.combined.corr$sample, levels = c("Uncorrected SI", "Corrected SI"))
 
 corr.delta.plot <- ggplot(SI.combined.corr, aes(x = sample, y = value, color = sample)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black") + scale_color_viridis_d(option = "C") + scale_color_manual(values = c("#5D01A6FF", "#FDB32FFF")) + theme_classic()
-corr.delta.plot <- corr.delta.plot + theme(axis.text = element_text(size = 8), axis.title.x = element_blank())+ ylab("Δ SI vs Corrected SI") + NoLegend()
+corr.delta.plot <- corr.delta.plot + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.title.x = element_blank())+ ylab("Δ SI vs Corrected SI") + NoLegend()
 
-# Put them together into S5
+### More paralog plots comparing species morphs etc
+
+## Make % paralog figure for species-morphs
+
+para.data.sub.ast <- reshape2::melt(para.results[[4]][,13:19])
+
+percent.para.ast <- ggplot(para.data.sub.ast[para.data.sub.ast$variable == c("percent.para.1", "percent.para.2"),], aes(x = variable, y = value, colour = variable, group = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black") + scale_color_viridis_d() + theme_classic() + ylim(c(0,18))
+percent.para.ast <- percent.para.ast + scale_x_discrete(labels=c("percent.para.1" = "Mexican tetra - Surface", "percent.para.2" = "Mexican tetra - Cave")) + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.title.x = element_blank()) + ylab("% Paralogs") + NoLegend()
+
+odds.para.ast <- ggplot(para.data.sub.ast[para.data.sub.ast$variable == c("fisher.odds.1", "fisher.odds.2"),], aes(x = variable, y = value, colour = variable, group = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black") + scale_color_viridis_d() + theme_classic()
+odds.para.ast <- odds.para.ast + scale_x_discrete(labels=c("fisher.odds.1" = "Mexican tetra - Surface", "fisher.odds.2" = "Mexican tetra - Cave")) + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.title.x = element_blank()) + ylab("Odds Ratio") + NoLegend()
+
+# Plot % of paralogs shared between cave and surface
+
+para.shared <- para.results$subclusters.comp
+para.shared$percent.1 <- para.shared$a1.1/para.shared$a1
+para.shared$percent.2 <- para.shared$a2.1/para.shared$a2
+
+para.shared <- reshape2::melt(para.shared[,c(25:27)])
+
+shared.para <- ggplot(para.shared, aes(x = variable, y = value, colour = variable)) + geom_jitter(size = 0.5) + geom_boxplot(outlier.color = NA, fill = "transparent", color = "black") + scale_color_viridis_d() + theme_classic() + ylim(c(0,1))
+shared.para <- shared.para + scale_x_discrete(labels=c("percent.1" = "Zebrafish", "percent.2" = "Mexican tetra")) + theme(axis.text = element_text(size = 8), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), axis.title.x = element_blank()) + ylab("% Paralogs shared") + NoLegend()
+
+# Plot them together into supplementary figure
+
+
+plot.1 <- shared.para + percent.para.ast + odds.para.ast + plot_layout(ncol = 3, height = unit(c(30), c("mm")), width = unit(c(15), c("mm")), guides = "collect")
+plot.2 <- para.drift + corr.delta.plot + plot_layout(ncol = 2, height = unit(c(30), c("mm")), width = unit(c(30,15), c("mm")), guides = "collect")
+
+design <- "
+AC
+BC"
+
+pdf("Figures/Hypo_integrated_para-supplemental_corrected.pdf", height = 11, width = 9) 
+(plot.1 / plot.2) + (SI.delta.plot + plot_layout(height = unit(c(90), c("mm")), width = unit(c(90), c("mm")), guides = "collect")) + plot_layout(design = design)
+dev.off()
+
+
+
+
+
+
+
+
+
 
 dev.new()
 confidence + gene.order + corr.delta.plot + plot_layout(nrow = 1, widths = unit(c(10,10,10), "mm"), height = unit(c(20,20,20), "mm"), guides = "collect")
@@ -230,19 +254,38 @@ dev.new()
 SI.delta.plot + plot_layout(widths = unit(c(90), "mm"), height = unit(c(90), "mm"), guides = "collect")
 
 
+### Make DotPlots for divergent gene pairs
+
+# hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v2.rds")
+
+Idents(hypo.integrated) <- "species.2"
+
+dot.zeb <- DotPlot(hypo.integrated.zeb, features = c("etv5b", "etv5a"), group.by = "integrated_Cluster", scale.max = 60) + RotatedAxis() + coord_flip() + scale_color_viridis() + theme(axis.title = element_blank(), axis.text = element_text(size = 8), axis.text.x = element_blank())
+dot.ast <- DotPlot(hypo.integrated.ast, features = c("etv5b", "etv5a"), group.by = "integrated_Cluster", scale.max = 60) + RotatedAxis() + coord_flip() + scale_color_viridis() + theme(axis.title = element_blank(), axis.text = element_text(size = 8))
+
+# Figure S4d
+dots <- dot.zeb / dot.ast + plot_layout(nrow = 2, guides = "collect")
+
+############################################################################################################################################
+############## The below should be replaced with the code from the other file (trinarized similarity and divergence figures) ###############
+############################################################################################################################################
+
+
 ## Make Paralog divergence supplemental figure S7
 
 ##### Correlate binarized cell types between species for each pair
 
-# Create matrices of normalized expression for each gene across integrated_Subclusters
+# Create matrices of normalized expression for each gene across integrated_SubclusterTypes
 
-zeb.int <- Reduce(cbind, norm.cluster[[4]][[1]])
-colnames(zeb.int) <- names(norm.cluster[[4]][[1]])
-row.names(zeb.int) <- row.names(norm.cluster[[4]][[1]][[1]])
+trinarized.genes <- readRDS(file = paste("trinarized_expression_a",a,"_b",b, "_f",f,".rds", sep = ""))
 
-ast.int <- Reduce(cbind, norm.cluster[[4]][[2]])
-colnames(ast.int) <- names(norm.cluster[[4]][[2]])
-row.names(ast.int) <- row.names(norm.cluster[[4]][[2]][[1]])
+zeb.int <- Reduce(cbind, trinarized.genes$subcluster.zebrafish)
+colnames(zeb.int) <- names(trinarized.genes$subcluster.zebrafish)
+# row.names(zeb.int) <- row.names(trinarized.exp$subcluster.zebrafish[[1]])
+
+ast.int <- Reduce(cbind, trinarized.genes$subcluster.astyanax)
+colnames(ast.int) <- names(trinarized.genes$subcluster.astyanax)
+# row.names(ast.int) <- row.names(trinarized.exp$subcluster.astyanax[[1]])
 
 dTcombined <- lapply(unique(dT.combined$branch.x), function(x) dT.combined[dT.combined$branch.x == x,])
 names(dTcombined) <- unique(dT.combined$branch.x)
@@ -265,8 +308,8 @@ corr.plot <- ggplot(correlations2, aes(x = branch, y = value)) + geom_jitter(col
 
 ## Do it for binarized expression (there or not)
 
-zeb.int.b <- ifelse(zeb.int > 0, 1, 0)
-ast.int.b <- ifelse(ast.int > 0, 1, 0)
+zeb.int.b <- ifelse(zeb.int > .95, 1, 0)
+ast.int.b <- ifelse(ast.int > .95, 1, 0)
 
 correlations.b <- lapply(dTcombined, function(x) apply(x, 1, function(x) cor(unlist(c(zeb.int.b[as.character(x[1]),intersect(colnames(zeb.int.b), colnames(ast.int.b))], zeb.int.b[as.character(x[2]),intersect(colnames(zeb.int.b), colnames(ast.int.b))])), unlist(c(ast.int.b[as.character(x[1]),intersect(colnames(zeb.int.b), colnames(ast.int.b))], ast.int.b[as.character(x[2]),intersect(colnames(zeb.int.b), colnames(ast.int.b))])))))
 
@@ -283,17 +326,9 @@ s7b <- ggplot(correlations.b.2[correlations.b.2$branch != "Opisthokonta",], aes(
 
 s7b <- s7b + theme_classic() + stat_compare_means()
 
-### Make DotPlots for divergent gene pairs
 
-# hypo.integrated <- readRDS("Hypo_integrated_127k_1500VFs_100Dims_v2.rds")
 
-Idents(hypo.integrated) <- "species.2"
 
-dot.zeb <- DotPlot(hypo.integrated.zeb, features = c("etv5b", "etv5a"), group.by = "integrated_Cluster", scale.max = 60) + RotatedAxis() + coord_flip() + scale_color_viridis() + theme(axis.title = element_blank(), axis.text = element_text(size = 8), axis.text.x = element_blank())
-dot.ast <- DotPlot(hypo.integrated.ast, features = c("etv5b", "etv5a"), group.by = "integrated_Cluster", scale.max = 60) + RotatedAxis() + coord_flip() + scale_color_viridis() + theme(axis.title = element_blank(), axis.text = element_text(size = 8))
-
-# Figure S4d
-dots <- dot.zeb / dot.ast + plot_layout(nrow = 2, guides = "collect")
 
 # Put them together
 
@@ -329,7 +364,10 @@ dots + plot_layout(width = unit(90, "mm"), height = unit(15, "mm"))
 # test <- Reduce(rbind, test)
 # test$cell_type <- names(gene.lists.pos[[7]])
 # 
-# ggplot(melt(test), aes(y = variable, x = cell_type,color = value)) + geom_point(size = 5) + scale_color_viridis(option = "B") + coord_flip() + theme(axis.text = element_text(size = 6))
+# ggplot(reshape2::melt(test), aes(y = value, x = variable,color = variable)) + geom_point(aes(group = cell_type),size = 5, position = position_dodge(0.4)) + scale_color_viridis_d(option = "B") + theme_classic() + theme(axis.text = element_text(size = 6)) #+ geom_line(aes(group = cell_type), position = position_dodge(0.2))
+# 
+# ggplot(reshape2::melt(SI.numbers.morphs), aes(y = value, x = variable,color = variable)) + geom_point(aes(group = cell_type),size = 5, position = position_dodge(0.4)) + scale_color_viridis_d(option = "B") + theme_classic() + theme(axis.text = element_text(size = 6)) #+ geom_line(aes(group = cell_type), position = position_dodge(0.2))
+#
 # 
 # ## Plot the # of conserved and species specific markers
 # 

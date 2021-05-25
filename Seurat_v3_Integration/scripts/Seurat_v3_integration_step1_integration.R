@@ -38,5 +38,6 @@ hypo.integrated <- FindVariableFeatures(hypo.integrated, nfeatures = 2000, assay
 hypo.integrated <- ScaleData(object = hypo.integrated, features = VariableFeatures(hypo.integrated), verbose = FALSE)
 hypo.integrated <- RunPCA(object = hypo.integrated, assay = "RNA", reduction.key = "base", reduction.name = "base", npcs = 100, verbose = FALSE)
 hypo.integrated <- RunTSNE(object = hypo.integrated, reduction = "base", reduction.key = "basetsne_", reduction.name = "basetsne", dims = 1:100, check_duplicates = F)
+hypo.integrated <- RunUMAP(object = hypo.integrated, reduction = "base", reduction.key = "baseumap_", reduction.name = "baseumap", dims = 1:100, check_duplicates = F)
 
 save(hypo.integrated.2, file = "Hypo_integrated_128k_1500VFs_100Dims_v1.Robj")

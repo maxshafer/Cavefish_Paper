@@ -8,7 +8,7 @@ library(ggplot2)
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/DanRer_Hypo")
 
 ## Load objects
-hypo <- readRDS("DanRer_65k.rds")
+hypo.zeb <- readRDS("DanRer_65k_vR.rds")
 
 ## Set colours for tsne
 cols <- c("#414487FF") # Yellow, green, blue from viridis
@@ -18,34 +18,60 @@ cols3 <- c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#1
 ## Make TSNE graphs
 
 png("Figures/hypo_cluster_plot_Cluster_nolab.png", height = 8, width = 8, units = "in", res = 500)
-DimPlot(object = hypo, group.by = "Cluster", reduction = "tsne", pt.size = .05, label = F,  label.size = 5) + NoLegend() + NoAxes()
+DimPlot(object = hypo.zeb, group.by = "Cluster", reduction = "tsne", pt.size = .05, label = F,  label.size = 5) + NoLegend() + NoAxes()
 dev.off()
 
 png("Figures/hypo_cluster_plot_Cluster.png", height = 8, width = 8, units = "in", res = 500)
-DimPlot(object = hypo, group.by = "Cluster", reduction = "tsne", pt.size = .05, label = T,  label.size = 5) + NoLegend() + NoAxes()
+DimPlot(object = hypo.zeb, group.by = "Cluster", reduction = "tsne", pt.size = .05, label = T,  label.size = 5) + NoLegend() + NoAxes()
 dev.off()
 
 png("Figures/hypo_cluster_plot_Subcluster.png", height = 8, width = 8, units = "in", res = 500)
-DimPlot(object = hypo, group.by = "Subcluster", reduction = "tsne", pt.size = .05, label = T,  label.size = 2) + NoLegend() + NoAxes()
+DimPlot(object = hypo.zeb, group.by = "Subcluster", reduction = "tsne", pt.size = .05, label = T,  label.size = 2.5, repel = F) + NoLegend() + NoAxes()
 dev.off()
 
 png("Figures/hypo_cluster_plot_species_morph.png", height = 8, width = 8, units = "in", res = 500)
-DimPlot(object = hypo, group.by = "species", reduction = "tsne", pt.size = .05, label = F,  label.size = 2, cols = cols) + NoAxes() + theme(legend.position = c(0.91,0.87), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5)))
+DimPlot(object = hypo.zeb, group.by = "species", reduction = "tsne", pt.size = .05, label = F,  label.size = 2, cols = cols) + NoAxes() + theme(legend.position = c(0.91,0.87), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5)))
 dev.off()
 
 png("Figures/hypo_cluster_plot_orig.ident_nolab.png", height = 8, width = 8, units = "in", res = 500)
-DimPlot(object = hypo, group.by = "orig.ident", reduction = "tsne", pt.size = .05, label = F,  label.size = 2) + NoAxes() + NoLegend() + scale_colour_manual(values = cols3)
+DimPlot(object = hypo.zeb, group.by = "orig.ident", reduction = "tsne", pt.size = .05, label = F,  label.size = 2) + NoAxes() + NoLegend() + scale_colour_manual(values = cols3)
 dev.off()
 
 png("Figures/hypo_cluster_plot_orig.ident.png", height = 8, width = 8, units = "in", res = 500)
-DimPlot(object = hypo, group.by = "orig.ident", reduction = "tsne", pt.size = .05, label = F,  label.size = 2) + NoAxes() + theme(legend.position = c(0.91,0.87), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5))) + scale_colour_manual(values = cols3)
+DimPlot(object = hypo.zeb, group.by = "orig.ident", reduction = "tsne", pt.size = .05, label = F,  label.size = 2) + NoAxes() + theme(legend.position = c(0.91,0.87), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5))) + scale_colour_manual(values = cols3)
+dev.off()
+
+## Make UMAP graphs
+
+png("Figures/hypo_cluster_plot_umap_Cluster_nolab.png", height = 8, width = 8, units = "in", res = 500)
+DimPlot(object = hypo.zeb, group.by = "Cluster", reduction = "umap", pt.size = .05, label = F,  label.size = 5) + NoLegend() + NoAxes()
+dev.off()
+
+png("Figures/hypo_cluster_plot_umap_Cluster.png", height = 8, width = 8, units = "in", res = 500)
+DimPlot(object = hypo.zeb, group.by = "Cluster", reduction = "umap", pt.size = .05, label = T,  label.size = 5) + NoLegend() + NoAxes()
+dev.off()
+
+png("Figures/hypo_cluster_plot_umap_Subcluster.png", height = 8, width = 8, units = "in", res = 500)
+DimPlot(object = hypo.zeb, group.by = "Subcluster", reduction = "umap", pt.size = .05, label = T,  label.size = 2.5, repel = F) + NoLegend() + NoAxes()
+dev.off()
+
+png("Figures/hypo_cluster_plot_umap_species_morph.png", height = 8, width = 8, units = "in", res = 500)
+DimPlot(object = hypo.zeb, group.by = "species", reduction = "umap", pt.size = .05, label = F,  label.size = 2, cols = cols) + NoAxes() + theme(legend.position = c(0.91,0.87), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5)))
+dev.off()
+
+png("Figures/hypo_cluster_plot_umap_orig.ident_nolab.png", height = 8, width = 8, units = "in", res = 500)
+DimPlot(object = hypo.zeb, group.by = "orig.ident", reduction = "umap", pt.size = .05, label = F,  label.size = 2) + NoAxes() + NoLegend() + scale_colour_manual(values = cols3)
+dev.off()
+
+png("Figures/hypo_cluster_plot_umap_orig.ident.png", height = 8, width = 8, units = "in", res = 500)
+DimPlot(object = hypo.zeb, group.by = "orig.ident", reduction = "umap", pt.size = .05, label = F,  label.size = 2) + NoAxes() + theme(legend.position = c(0.91,0.87), legend.background = element_blank()) + guides(color = guide_legend(ncol = 2, override.aes = list(size = 5))) + scale_colour_manual(values = cols3)
 dev.off()
 
 
 # DotPlots for major markers
 
 png("Figures/hypo_dotplots_markers.png", height = 10, width = 6.5, units = "in", res = 500) 
-DotPlot(object = hypo, features = rev(c("gng3", "slc18a3a", "slc44a2", "slc44a5a", "slc44a5b", "slc17a6a", "slc17a6b", "slc6a9", "gad1b", "gad2", "slc32a1", "her4.2", "prdx1", "otpa", "cd74a", "mpz", "mrc1a", "epd", "hopx", "ba1")), group.by = "Cluster") + theme(legend.position = "right") + RotatedAxis() + scale_color_viridis()
+DotPlot(object = hypo.zeb, features = rev(c("gng3", "slc18a3a", "slc44a2", "slc44a5a", "slc44a5b", "slc17a6a", "slc17a6b", "slc6a9", "gad1b", "gad2", "slc32a1", "her4.2", "prdx1", "otpa", "cd74a", "mpz", "mrc1a", "epd", "hopx", "ba1")), group.by = "Cluster") + theme(legend.position = "right") + RotatedAxis() + scale_color_viridis()
 dev.off()
 
 # DotPlots for Cluster marker genes
@@ -54,7 +80,7 @@ gene.lists <- readRDS("marker_gene_lists.rds")
 
 genes.to.plot.zeb <- lapply(gene.lists[[1]], function(x) row.names(x)[1:2])
 
-zeb.markers <- DotPlot(hypo, features = rev(unique(unlist(genes.to.plot.zeb))), group.by = "Cluster", scale.max = 200) + coord_flip() + scale_color_viridis() + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(size = 6, angle = 90, hjust = 1, vjust = 0.5), axis.title = element_blank())
+zeb.markers <- DotPlot(hypo.zeb, features = rev(unique(unlist(genes.to.plot.zeb))), group.by = "Cluster", scale.max = 200) + coord_flip() + scale_color_viridis() + theme(axis.text.y = element_text(size = 6), axis.text.x = element_text(size = 6, angle = 90, hjust = 1, vjust = 0.5), axis.title = element_blank())
 
 png("Figures/hypo_dotplots_Cluster_markers.png", height = 10, width = 6.5, units = "in", res = 500) 
 zeb.markers
@@ -64,7 +90,7 @@ dev.off()
 
 # Make tables of cell type proportions
 
-prop.table <- table(hypo@meta.data$Cluster, hypo@meta.data$orig.ident)
+prop.table <- table(hypo.zeb@meta.data$Cluster, hypo.zeb@meta.data$orig.ident)
 
 prop.table <- as.data.frame(t(apply(prop.table, 1, function(y) {y/sum(y)})))
 

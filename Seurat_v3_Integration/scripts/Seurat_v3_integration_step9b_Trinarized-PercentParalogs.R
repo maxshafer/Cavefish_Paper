@@ -1,18 +1,18 @@
 library(dplyr)
 library(fdrtool)
 
-# Set hyperparameters from arguments or in file
-args <- commandArgs(trailingOnly = TRUE)
+# # Set hyperparameters from arguments or in file
+# args <- commandArgs(trailingOnly = TRUE)
+# 
+# print(args)
+# 
+# a <- as.numeric(args[[1]])
+# b <- as.numeric(args[[2]])
+# f <- as.numeric(args[[3]])
 
-print(args)
-
-a <- as.numeric(args[[1]])
-b <- as.numeric(args[[2]])
-f <- as.numeric(args[[3]])
-
-# a = 1.5
-# b = 2
-# f = 0.35
+a = 1.5
+b = 2
+f = 0.1
 
 setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
 
@@ -29,9 +29,11 @@ mart[[1]] <- read.csv("mart_export_GRCz10_paralogs.txt", head = TRUE)
 mart[[2]] <- read.csv("mart_export_AstMex102_paralogs.txt", head = TRUE)
 names(mart) <- c("zebrafish", "astyanax")
 
-## Load trinarized gene lists
+# # Load trinarized gene lists
+# trinarized.exp <- readRDS(file = paste("trinarized_expression_a",a,"_b",b, "_f",f,"_cutoff.rds", sep = ""))
 
-trinarized.exp <- readRDS(file = paste("trinarized_expression_a",a,"_b",b, "_f",f,"_cutoff.rds", sep = ""))
+# Load hk filtered file
+trinarized.exp <- readRDS(file = paste("trinarized_expression_hk-filtered_a",a,"_b",b, "_f",f,"_cutoff.rds", sep = ""))
 
 
 ### Association between whether a gene is species-expressed in a cell type, and it being a paralog of gene expressed in either species, or conserved between species.
@@ -133,8 +135,9 @@ subclusters$Cluster <- factor(subclusters$Cluster, levels = levels(hypo.integrat
 
 ## Save results
 
-para.results <- list(subtypes, subclusters)
+para.results <- list(clusters, subclusters)
+names(para.results) <- c("Clusters", "Subclusters")
 
-saveRDS(para.results, file = paste("Paralog-results-trinarized_a",a,"_b",b, "_f",f,".rds", sep = ""))
-
+# saveRDS(para.results, file = paste("Paralog-results-trinarized_a",a,"_b",b, "_f",f,".rds", sep = ""))
+saveRDS(para.results, file = paste("Paralog-results-trinarized_hk-filtered_a",a,"_b",b, "_f",f,".rds", sep = ""))
 
