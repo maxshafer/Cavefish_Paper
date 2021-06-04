@@ -5,6 +5,7 @@
 /astyanax_variants/cluster_scripts/scripts/logs/
 /astyanax_variants/cluster_scripts/scripts/archive/
 /Supplemental_data/
+/Supplemental_data_V1/
 /Seurat_v3_Integration/SCENIC copy/
 /Seurat_v3_Integration/SCENIC copy 2/
 /Seurat_v3_Integration/unused_scripts/
@@ -20,8 +21,10 @@
 /DanRer_Hypo/raw_data/
 /DanRer_Hypo/*.txt
 /Ensembl_93_paralogs/
+/SAMap/
 Ensembl_93_paralogs.zip
 Supplemental_data.zip
+Supplemental_data_V1.zip
 *.Robj
 *.rds
 *.png

@@ -6,12 +6,12 @@ library(reshape2)
 
 # Load hypo and make species specific names (for subsetting ast gene lists)
 
-hypo <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k.rds")
+hypo <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/AstMex_63k_vR.rds")
 
 Idents(hypo) <- "SubclusterType"
 
 # Find morph specific clusters
-prop.table <- table(hypo@meta.data$SubclusterType, hypo@meta.data$species)
+prop.table <- table(hypo@meta.data$Subcluster, hypo@meta.data$species)
 surface.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[1] < 3 | x[2]/sum(x) > .9))]
 cave.names <- row.names(prop.table)[apply(prop.table, 1, function(x) (x[2] < 3 | x[1]/sum(x) > .9))]
 
@@ -27,13 +27,11 @@ gene.lists.zeb <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/D
 
 gene.lists.ast <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/AstMex_Hypo/marker_gene_lists.rds")
 
-gene.lists <- readRDS("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/drift_gene_lists.rds")
-
 a = 1.5
 b = 2
 f = 0.1
 
-gene.lists.pos <- readRDS(paste("drift_gene_lists_pos_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
+gene.lists.pos <- readRDS(paste("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/drift_gene_lists_pos_trinarized_a", a, "_b", b, "_f",f,".rds", sep = ""))
 
 ## Export the number of conserved and species specific marker genes per cluster
 
@@ -87,26 +85,29 @@ for (i in 1:length(gene.lists.ast)) {
   }
 }
 
-for (i in 1:length(gene.lists)) {
-  for (j in 1:length(gene.lists[[i]])) {
-    gene.lists[[i]][[j]]$cluster <- names(gene.lists[[i]])[j]
+for (i in 1:length(gene.lists.pos)) {
+  for (j in 1:length(gene.lists.pos[[i]])) {
+    gene.lists.pos[[i]][[j]]$cluster <- names(gene.lists.pos[[i]])[j]
   }
 }
 
+gene.lists.ast$morph_specific_subclusters <- gene.lists.ast$subcluster.conserved[index]
+gene.lists.ast$subcluster.conserved <- gene.lists.ast$subcluster.conserved[!(names(gene.lists.ast$subcluster.conserved) %in% index)]
+
 # Concatenate data.frames
 
-gene.lists.zeb.2 <- lapply(seq_along(gene.lists.zeb), function(x) Reduce(rbind, gene.lists.zeb[[x]]))
+gene.lists.zeb.2 <- lapply(seq_along(gene.lists.zeb), function(x) Reduce(bind_rows, gene.lists.zeb[[x]]))
 names(gene.lists.zeb.2) <- c("zebrafish.markers", "zebrafish.markers.sub")
 
-gene.lists.ast.2 <- lapply(seq_along(gene.lists.ast), function(x) Reduce(rbind, gene.lists.ast[[x]])) # df 4 doesn't work b/c the morph specific clusters have different dimensions
+gene.lists.ast.2 <- lapply(c(1:4,7:9), function(x) Reduce(bind_rows, gene.lists.ast[[x]])) # df 4 doesn't work b/c the morph specific clusters have different dimensions
 names(gene.lists.ast.2) <- names(gene.lists.ast)
 
-gene.lists.2 <- lapply(seq_along(gene.lists), function(x) Reduce(rbind, gene.lists[[x]]))
-names(gene.lists.2) <- names(gene.lists)
+gene.lists.2 <- lapply(seq_along(gene.lists.pos), function(x) Reduce(bind_rows, gene.lists.pos[[x]]))
+names(gene.lists.2) <- names(gene.lists.pos)
 
 # Export to csv
 
-setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Supplemental_data/marker_gene_lists/")
+setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Supplemental_data/3-marker_gene_lists/")
 
 for (i in 1:length(gene.lists.zeb.2)) {
   write.csv(gene.lists.zeb.2[[i]], file = paste("Drerio_", names(gene.lists.zeb.2)[i], ".csv", sep = ""))
@@ -119,6 +120,38 @@ for (i in 1:length(gene.lists.ast.2)) {
 for (i in 1:length(gene.lists.2)) {
   write.csv(gene.lists.2[[i]], file = paste("Integrated_", names(gene.lists.2)[i], ".csv", sep = ""))
 }
+
+
+## Trinarized gene lists
+setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Seurat_v3_Integration/")
+a = 1.5
+b = 2
+f = 0.1
+
+trinarized.genes <- readRDS(file = paste("trinarized_expression_a",a,"_b",b, "_f",f,".rds", sep = ""))
+
+setwd("/Volumes/BZ/Home/gizevo30/R_Projects/Cavefish_Paper/Supplemental_data/9-trinarized_gene_lists/")
+
+saveRDS(trinarized.genes, file = "trinarization_values_integrated_ids.rds")
+
+## Calculate unique expressed genes per ID
+
+# per list cbind the lists to make matrices, than use those to determine cases where the gene is only 'expressed' in one cluster (per list)
+
+trinarized.genes.2 <- lapply(seq_along(trinarized.genes), function(x) {
+  sub <- Reduce(cbind, trinarized.genes[[x]])
+  colnames(sub) <- names(trinarized.genes[[x]])
+  return(sub)
+  }
+  )
+names(trinarized.genes.2) <- names(trinarized.genes)
+
+trinarized.genes.2 <- lapply(trinarized.genes.2, function(x) ifelse(x > 0.95, 1, 0))
+trinarized.genes.2 <- lapply(trinarized.genes.2, function(x) x[rowSums(x) == 1,])
+trinarized.genes.2 <- lapply(trinarized.genes.2, function(x) apply(x, 2, function(y) names(y[y > 0])))
+
+saveRDS(trinarized.genes.2, file = "uniquely_expressed_genes.rds")
+
 
 ## Saves all to directory, then can zip and upload as one supplemental data file
 
